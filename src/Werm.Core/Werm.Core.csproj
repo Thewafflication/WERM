@@ -1,0 +1,19 @@
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
+    <ProjectGuid>{197E6577-23F4-42B4-A95E-B31FF375E9D8}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Werm.Core</RootNamespace>
+    <AssemblyName>Werm.Core</AssemblyName>
+    <Platforms>x86;x64</Platforms>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ApplicationIdentity.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

@@ -1,0 +1,114 @@
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - 'v*'
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test-package:
+    name: ${{ matrix.architecture }} Debug evidence and Release package
+    runs-on: windows-2025
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture:
+          - x86
+          - x64
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          submodules: recursive
+
+      - name: Locate MSBuild
+        shell: pwsh
+        run: |
+          $msbuild = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" `
+            -latest -products * -requires Microsoft.Component.MSBuild `
+            -find 'MSBuild\**\Bin\MSBuild.exe' | Select-Object -First 1
+          if (-not $msbuild) {
+            throw 'MSBuild was not found on the GitHub runner.'
+          }
+          "MSBUILD_PATH=$msbuild" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Build Debug
+        shell: pwsh
+        run: >-
+          ./tools/Build-Werm.ps1
+          -Architecture '${{ matrix.architecture }}'
+          -Configuration Debug
+          -MSBuildPath $env:MSBUILD_PATH
+          -Clean
+
+      - name: Run controlled Debug tests
+        shell: pwsh
+        run: >-
+          ./tools/Run-WermTests.ps1
+          -Architecture '${{ matrix.architecture }}'
+          -Configuration Debug
+          -NoBuild
+
+      - name: Build Release
+        shell: pwsh
+        run: >-
+          ./tools/Build-Werm.ps1
+          -Architecture '${{ matrix.architecture }}'
+          -Configuration Release
+          -MSBuildPath $env:MSBUILD_PATH
+          -Clean
+
+      - name: Bootstrap pinned WPM
+        shell: pwsh
+        run: |
+          $archive = Join-Path $env:RUNNER_TEMP 'wpm-x64-1.0.16.zip'
+          $destination = Join-Path $env:RUNNER_TEMP 'wpm-1.0.16'
+          Invoke-WebRequest -UseBasicParsing `
+            -Uri 'https://github.com/Thewafflication/wpm/releases/download/v1.0.16/wpm-x64-1.0.16.zip' `
+            -OutFile $archive
+          $actual = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+          $expected = '6553898f4e0bfbf171f601c16d314259fd28f59e7398d58a0549208b011c6544'
+          if ($actual -ne $expected) {
+            throw "WPM archive digest mismatch. Expected $expected; received $actual."
+          }
+          Expand-Archive -LiteralPath $archive -DestinationPath $destination
+          $wpm = Get-ChildItem -LiteralPath $destination -Filter wpm.exe -Recurse |
+            Select-Object -First 1 -ExpandProperty FullName
+          if (-not $wpm) {
+            throw 'The pinned WPM archive did not contain wpm.exe.'
+          }
+          "WPM_EXE=$wpm" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          & $wpm --version
+
+      - name: Build Release WPM package
+        shell: pwsh
+        run: >-
+          ./tools/Build-WpmPackage.ps1
+          -Architecture '${{ matrix.architecture }}'
+          -Configuration Release
+          -Version '0.1.0-ci.${{ github.run_number }}'
+          -WpmPath $env:WPM_EXE
+
+      - name: Upload controlled evidence and package
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: werm-${{ matrix.architecture }}-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            out/bin/Werm.App/${{ matrix.architecture }}/Debug/Werm.exe
+            out/bin/Werm.App/${{ matrix.architecture }}/Debug/*.pdb
+            out/bin/Werm.Core/${{ matrix.architecture }}/Debug/*
+            out/bin/Werm.Tests/${{ matrix.architecture }}/Debug/*
+            out/test-results/${{ matrix.architecture }}/Debug/werm-test-results.xml
+            out/packages/werm-${{ matrix.architecture }}-0.1.0-ci.${{ github.run_number }}.zip

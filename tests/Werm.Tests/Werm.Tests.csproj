@@ -1,0 +1,26 @@
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
+    <ProjectGuid>{9DB6386D-246C-43B6-9289-5DA173906F52}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Werm.Tests</RootNamespace>
+    <AssemblyName>Werm.Tests</AssemblyName>
+    <Platforms>x86;x64</Platforms>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Werm.Core\Werm.Core.csproj">
+      <Project>{197E6577-23F4-42B4-A95E-B31FF375E9D8}</Project>
+      <Name>Werm.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

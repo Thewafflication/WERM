@@ -4,7 +4,7 @@
 
 **Milestone or work package:** M1 — WERM 0.1.0
 
-**Status:** Proposed
+**Status:** In progress
 
 **Planned period:** Start 2026-08-22; target completion to be forecast after
 the M1.2 design spikes
@@ -13,7 +13,8 @@ the M1.2 design spikes
 
 **Owner:** Engineering owner
 
-**Approval:** Product owner approval pending
+**Approval:** Product owner authorized implementation on 2026-08-22; release
+approval remains pending
 
 ## Objective and Scope
 
@@ -69,6 +70,17 @@ The current assumptions are:
 - PLUs are stable text identifiers during this milestone; and
 - version 0.1.0 uses one locally accessible SQLite database file.
 
+The accepted build and package matrix is:
+
+| Target | Debug build and controlled tests | Release WPM package |
+| --- | --- | --- |
+| Windows x86 | Required | Required |
+| Windows x64 | Required | Required |
+| Windows ARM64 | Not claimed for 0.1.0 | Not produced |
+
+Word, SQLite ODBC, and printer components must match the selected x86 or x64
+application architecture. See ADR-0008.
+
 M1.2 must confirm these assumptions. A failed assumption requires plan and
 impact review rather than an implicit scope change.
 
@@ -99,9 +111,10 @@ impact review rather than an implicit scope change.
 | `REQ-0016` through `REQ-0018` | Maintenance GUI and application services | GUI system and database-state tests | Yes |
 | Barcode deferral | Outside version 0.1.0 | Scope and release-claim inspection | No |
 
-Controlled `TC-NNNN` identifiers will be assigned during M1.1. `REQ-0003` and
-`REQ-0004` remain Proposed until record selection and Word field mapping are
-defined; they cannot enter the release baseline until accepted.
+Controlled `TC-NNNN` identifiers are assigned as implementation begins and are
+indexed in `docs/tests/README.md`. `REQ-0003` and `REQ-0004` remain Proposed
+until record selection and Word field mapping are defined; they cannot enter
+the release baseline until accepted.
 
 ## Roles and Review
 
@@ -168,9 +181,12 @@ specifications. Execution evidence will identify the source revision, build,
 environment, dependency versions, timestamps, result, and diagnostics. Failed
 results will be retained when a later execution passes.
 
-M1.1 will define the supported release matrix, CI dispatcher, evidence formats,
-artifact location, retention period, and the WSP 1.1.0 Debug evidence and
-diagnostic tailoring.
+M1.1 defines GitHub Actions as the CI dispatcher, x86 and x64 as the supported
+matrix, XML as the initial controlled-test evidence format, `out/` and GitHub
+Actions artifacts as the artifact locations, and 30 days as CI retention. A
+successful Debug job retains the executable, PDB files, dependency assemblies,
+controlled-test executable, and XML results. The .NET diagnostic tailoring
+still requires process approval.
 
 ## Rollback and Recovery
 
@@ -279,6 +295,8 @@ replanning; they require correction or a revised release claim.
 - [Database design](../database-design.md)
 - [ADR-0006: Access SQLite through ODBC](../adr-0006-access-sqlite-through-odbc.md)
 - [ADR-0007: Use Waughtal Shell for database installation](../adr-0007-use-waughtal-shell-database-installer.md)
+- [ADR-0008: Use WPF with x86 and x64 packages](../adr-0008-use-wpf-and-x86-x64-packages.md)
+- [ADR-0009: Use WPM and GitHub Actions for delivery](../adr-0009-use-wpm-and-github-actions.md)
 - [Database installation](../database-installation.md)
 - [WSP milestone work-plan template](../../wsp/processes/milestone-plan-template.md)
 - [WSP test strategy](../../wsp/testing/test-strategy.md)

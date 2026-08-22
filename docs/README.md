@@ -21,6 +21,8 @@ Version 0.1.0 does not store, generate, populate, or print barcodes.
 - [ADR-0005: Retain append-only product audit history](adr-0005-append-only-product-audit-history.md)
 - [ADR-0006: Access SQLite through ODBC](adr-0006-access-sqlite-through-odbc.md)
 - [ADR-0007: Use Waughtal Shell for database installation](adr-0007-use-waughtal-shell-database-installer.md)
+- [ADR-0008: Use WPF with x86 and x64 packages](adr-0008-use-wpf-and-x86-x64-packages.md)
+- [ADR-0009: Use WPM and GitHub Actions for delivery](adr-0009-use-wpm-and-github-actions.md)
 
 ## Design
 
@@ -36,6 +38,7 @@ Version 0.1.0 does not store, generate, populate, or print barcodes.
 - [WSP adoption record](wsp-adoption.md)
 - [Project process](project-process.md)
 - [Milestone 0.1.0 plan](milestones/milestone-0.1.0.md)
+- [Controlled test specifications](tests/README.md)
 
 ## Open Decisions
 

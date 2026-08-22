@@ -39,7 +39,7 @@ release plan are reviewed.
 | CMake style | No | The .NET project will not use CMake |
 | Windows version resources | Yes | Applies to the shipped Windows executable |
 | Windows code signing and Defender | Pending | Decide during milestone work package M1.1 |
-| Common tools | Pending | Decide during milestone work package M1.1 |
+| Common tools | Yes | GitHub Actions with pinned actions and verified WPM bootstrap |
 
 ## Requirement Dispositions
 
@@ -64,10 +64,10 @@ milestone work package M1.1:
 
 | Requirement | Preliminary impact | Required action |
 | --- | --- | --- |
-| `WSP-TEST-0016` | Applies to successful Debug CI jobs | Define the retained Debug artifact set |
-| `WSP-TEST-0017` | Conditional on an ARM64 release claim | Set the supported architecture matrix |
+| `WSP-TEST-0016` | Applies to successful Debug CI jobs | Retain executables, PDBs, dependencies, runner, and XML evidence for 30 days |
+| `WSP-TEST-0017` | ARM64 is not claimed for 0.1.0 | Reassess only before adding an ARM64 release target |
 | `WSP-TEST-0018` | GDB is not the normal .NET Framework debug path | Approve .NET-specific tailoring and equivalent diagnostics |
-| `WSP-TOOL-0009` | Conditional on GitHub Actions and common tools | Use maintained actions and record runner compatibility |
+| `WSP-TOOL-0009` | Applies to GitHub Actions and common tools | Pin maintained actions and use the Windows 2025 runner |
 
 No accepted WERM product requirement or ADR conflicts with WSP 1.1.0. The
 complete disposition table and the identified .NET diagnostic tailoring must
