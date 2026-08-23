@@ -69,6 +69,10 @@ Copy-Item -LiteralPath (Join-Path $repositoryRoot 'tools\Install-WermDatabase.ps
     -Destination (Join-Path $payload 'tools')
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'docs\database-installation.md') `
     -Destination (Join-Path $payload 'docs')
+Copy-Item -LiteralPath (Join-Path $repositoryRoot 'docs\word-template-contract.md') `
+    -Destination (Join-Path $payload 'docs')
+Copy-Item -LiteralPath (Join-Path $repositoryRoot 'docs\workstation-configuration.md') `
+    -Destination (Join-Path $payload 'docs')
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'README.md') -Destination $payload
 
 $sourceRevision = $env:GITHUB_SHA
@@ -145,8 +149,11 @@ try {
     foreach ($requiredEntry in @(
         'payload/Werm.exe',
         'payload/Werm.Data.dll',
+        'payload/Werm.Printing.dll',
         'payload/database/migrations/0001-initial-schema.sql',
         'payload/tools/install-werm-database.wsh',
+        'payload/docs/word-template-contract.md',
+        'payload/docs/workstation-configuration.md',
         '.wpm/package.txt',
         '.wpm/install.cmd',
         '.wpm/remove.cmd',

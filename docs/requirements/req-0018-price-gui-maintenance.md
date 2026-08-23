@@ -48,6 +48,7 @@ None.
 
 ## Implementation Record
 
-The authorized application service and atomic ODBC customer-price save with
-product audit lineage are implemented. The WPF maintenance workflow remains
-pending.
+The WPF Maintenance tab loads and saves customer-product prices only after a
+password-gated session is established. Saves pass through the authorized
+application service and atomic ODBC price/audit transaction. A physical
+GUI/database workflow test remains pending.

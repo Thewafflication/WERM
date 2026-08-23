@@ -111,10 +111,10 @@ impact review rather than an implicit scope change.
 | `REQ-0016` through `REQ-0018` | Maintenance GUI and application services | GUI system and database-state tests | Yes |
 | Barcode deferral | Outside version 0.1.0 | Scope and release-claim inspection | No |
 
-Controlled `TC-NNNN` identifiers are assigned as implementation begins and are
-indexed in `docs/tests/README.md`. `REQ-0003` and `REQ-0004` remain Proposed
-until record selection and Word field mapping are defined; they cannot enter
-the release baseline until accepted.
+Controlled `TC-NNNN` identifiers are indexed in `docs/tests/README.md`.
+`REQ-0003` and `REQ-0004` are accepted: record selection uses PLU, customer ID,
+and price type, and the controlled Word contract defines nine tagged content
+controls. Physical Word/printer verification remains a release gate.
 
 ## Roles and Review
 
@@ -212,10 +212,11 @@ define the release matrix, and establish traceability and evidence rules.
 
 ### M1.2 — Resolve Blocking Design Decisions
 
-Select WPF or Windows Forms, the SQLite ODBC driver and DSN model, Word
-named-field mechanism, template contract, credential handling, supported
-platform and architecture, and printer-selection behavior. Complete
-representative ODBC, Word, and physical-printer spikes.
+Confirm the selected WPF workflow, SQLite ODBC driver deployment baseline,
+tagged Word content-control contract, credential handling, supported platform
+and architecture, and printer-selection behavior. Complete representative
+ODBC, Word, and physical-printer spikes. The software decisions are complete;
+the vendor-specific ODBC and physical Word/printer baselines remain open.
 
 ### M1.3 — Establish the Solution and Database
 
@@ -297,7 +298,10 @@ replanning; they require correction or a revised release claim.
 - [ADR-0007: Use Waughtal Shell for database installation](../adr-0007-use-waughtal-shell-database-installer.md)
 - [ADR-0008: Use WPF with x86 and x64 packages](../adr-0008-use-wpf-and-x86-x64-packages.md)
 - [ADR-0009: Use WPM and GitHub Actions for delivery](../adr-0009-use-wpm-and-github-actions.md)
+- [ADR-0012: Use tagged Word content controls](../adr-0012-use-tagged-word-content-controls.md)
 - [Database installation](../database-installation.md)
+- [Word template contract](../word-template-contract.md)
+- [Workstation configuration](../workstation-configuration.md)
 - [WSP milestone work-plan template](../../wsp/processes/milestone-plan-template.md)
 - [WSP test strategy](../../wsp/testing/test-strategy.md)
 - [WSP release-readiness template](../../wsp/processes/release-readiness-template.md)

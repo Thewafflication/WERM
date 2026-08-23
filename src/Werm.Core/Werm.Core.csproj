@@ -26,6 +26,15 @@
     <Compile Include="Persistence\MaintenanceService.cs" />
     <Compile Include="Persistence\ProductAuditChange.cs" />
     <Compile Include="Persistence\ProductAuditEvent.cs" />
+    <Compile Include="Printing\ILabelDocument.cs" />
+    <Compile Include="Printing\ILabelDocumentFactory.cs" />
+    <Compile Include="Printing\ILabelPrintService.cs" />
+    <Compile Include="Printing\LabelFieldMapper.cs" />
+    <Compile Include="Printing\LabelFieldNames.cs" />
+    <Compile Include="Printing\LabelPrintJob.cs" />
+    <Compile Include="Printing\LabelTemplateException.cs" />
+    <Compile Include="Printing\LabelWorkflowService.cs" />
+    <Compile Include="Printing\WordLabelPrintService.cs" />
     <Compile Include="Security\IMaintenanceCredentialStore.cs" />
     <Compile Include="Security\IPasswordHasher.cs" />
     <Compile Include="Security\IUtcClock.cs" />

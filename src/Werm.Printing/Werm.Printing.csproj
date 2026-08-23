@@ -1,0 +1,28 @@
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
+    <ProjectGuid>{6DF2095C-DDFD-4878-B916-55967ED04BF6}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Werm.Printing</RootNamespace>
+    <AssemblyName>Werm.Printing</AssemblyName>
+    <Platforms>x86;x64</Platforms>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WordComLabelDocument.cs" />
+    <Compile Include="WordComLabelDocumentFactory.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Werm.Core\Werm.Core.csproj">
+      <Project>{197E6577-23F4-42B4-A95E-B31FF375E9D8}</Project>
+      <Name>Werm.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

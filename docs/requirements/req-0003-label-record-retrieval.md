@@ -2,7 +2,7 @@
 
 **Content type:** Project requirement
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Source:** Stakeholder need
 
@@ -25,7 +25,7 @@ print a label.
 
 **Method:** Test
 
-**References:** To be assigned
+**References:** `TC-0020`, `TC-0023`
 
 For a database containing a known record, request its label and compare every
 retrieved mapped value with the expected database value.
@@ -42,5 +42,6 @@ None.
 
 ## Implementation Record
 
-Not yet implemented. The record-selection and field-mapping designs remain
-open.
+`LabelWorkflowService` retrieves the active product, customer, and exact
+customer-product price selected by PLU, customer ID, and price type. It rejects
+missing or inactive records before creating the print job.

@@ -2,7 +2,7 @@
 
 **Content type:** Project requirement
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Source:** Stakeholder need
 
@@ -24,7 +24,7 @@ The populated Word document is the rendered label that will be printed.
 
 **Method:** Test
 
-**References:** To be assigned
+**References:** `TC-0020`, `TC-0021`, `TC-0022`
 
 Populate a representative template from a record containing known values.
 Verification passes when every mapped field contains its expected value before
@@ -43,4 +43,7 @@ None.
 
 ## Implementation Record
 
-Not yet implemented. The named-field and mapping mechanisms remain open.
+WERM maps nine controlled values and populates Word content controls by exact,
+case-sensitive `Tag`. The required tags and formats are defined in the
+[Word template contract](../word-template-contract.md). A missing tag is
+rejected before population or printing.

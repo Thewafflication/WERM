@@ -14,6 +14,8 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
@@ -27,6 +29,7 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ApplicationServices.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
@@ -41,6 +44,10 @@
     <ProjectReference Include="..\Werm.Data\Werm.Data.csproj">
       <Project>{B06BCCF7-9E0D-4DE4-B61F-73584E163DE4}</Project>
       <Name>Werm.Data</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Werm.Printing\Werm.Printing.csproj">
+      <Project>{6DF2095C-DDFD-4878-B916-55967ED04BF6}</Project>
+      <Name>Werm.Printing</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

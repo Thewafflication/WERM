@@ -12,8 +12,8 @@ verification method, and architectural relationships.
 | --- | --- | --- |
 | [REQ-0001](req-0001-dotnet-framework-target.md) | .NET Framework target | Accepted |
 | [REQ-0002](req-0002-sqlite-data-source.md) | SQLite data source | Accepted |
-| [REQ-0003](req-0003-label-record-retrieval.md) | Label record retrieval | Proposed |
-| [REQ-0004](req-0004-word-field-population.md) | Word field population | Proposed |
+| [REQ-0003](req-0003-label-record-retrieval.md) | Label record retrieval | Accepted |
+| [REQ-0004](req-0004-word-field-population.md) | Word field population | Accepted |
 | [REQ-0005](req-0005-direct-word-printing.md) | Direct Word printing | Accepted |
 | [REQ-0006](req-0006-word-prerequisite.md) | Microsoft Word prerequisite | Accepted |
 | [REQ-0007](req-0007-unique-product-plu.md) | Unique product PLU | Accepted |
@@ -32,8 +32,8 @@ verification method, and architectural relationships.
 | [REQ-0020](req-0020-repeatable-database-installation.md) | Repeatable database installation | Accepted |
 | [REQ-0021](req-0021-waughtal-shell-database-installer.md) | Waughtal Shell database installer | Accepted |
 
-The proposed requirements capture the current product intent but need detailed
-database, mapping, and error-behavior decisions before acceptance.
+All version 0.1.0 product requirements are accepted. Remaining physical and
+environment-dependent verification gates are tracked in the milestone plan.
 
 ## Deferred Beyond Version 0.1.0
 

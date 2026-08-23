@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Werm.Tests", "tests\Werm.Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Werm.Data", "src\Werm.Data\Werm.Data.csproj", "{B06BCCF7-9E0D-4DE4-B61F-73584E163DE4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Werm.Printing", "src\Werm.Printing\Werm.Printing.csproj", "{6DF2095C-DDFD-4878-B916-55967ED04BF6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -50,6 +52,14 @@ Global
 		{B06BCCF7-9E0D-4DE4-B61F-73584E163DE4}.Release|x64.Build.0 = Release|x64
 		{B06BCCF7-9E0D-4DE4-B61F-73584E163DE4}.Release|x86.ActiveCfg = Release|x86
 		{B06BCCF7-9E0D-4DE4-B61F-73584E163DE4}.Release|x86.Build.0 = Release|x86
+		{6DF2095C-DDFD-4878-B916-55967ED04BF6}.Debug|x64.ActiveCfg = Debug|x64
+		{6DF2095C-DDFD-4878-B916-55967ED04BF6}.Debug|x64.Build.0 = Debug|x64
+		{6DF2095C-DDFD-4878-B916-55967ED04BF6}.Debug|x86.ActiveCfg = Debug|x86
+		{6DF2095C-DDFD-4878-B916-55967ED04BF6}.Debug|x86.Build.0 = Debug|x86
+		{6DF2095C-DDFD-4878-B916-55967ED04BF6}.Release|x64.ActiveCfg = Release|x64
+		{6DF2095C-DDFD-4878-B916-55967ED04BF6}.Release|x64.Build.0 = Release|x64
+		{6DF2095C-DDFD-4878-B916-55967ED04BF6}.Release|x86.ActiveCfg = Release|x86
+		{6DF2095C-DDFD-4878-B916-55967ED04BF6}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

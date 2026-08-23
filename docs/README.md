@@ -25,11 +25,14 @@ Version 0.1.0 does not store, generate, populate, or print barcodes.
 - [ADR-0009: Use WPM and GitHub Actions for delivery](adr-0009-use-wpm-and-github-actions.md)
 - [ADR-0010: Hash the maintenance password and gate write sessions](adr-0010-hash-maintenance-password.md)
 - [ADR-0011: Use ODBC repositories with atomic audit transactions](adr-0011-use-odbc-repository-transactions.md)
+- [ADR-0012: Use tagged Word content controls and late-bound automation](adr-0012-use-tagged-word-content-controls.md)
 
 ## Design
 
 - [Database design](database-design.md)
 - [Database installation](database-installation.md)
+- [Word template contract](word-template-contract.md)
+- [Workstation configuration](workstation-configuration.md)
 
 ## Requirements
 
@@ -47,14 +50,11 @@ Version 0.1.0 does not store, generate, populate, or print barcodes.
 The following choices remain open and require separate review before their
 implementation becomes authoritative:
 
-- SQLite ODBC driver, version, deployment, bitness, and DSN model;
-- Word content controls, bookmarks, or another named-field mechanism;
-- field-mapping configuration and template discovery;
+- approved SQLite ODBC driver vendor, version, and deployment baseline;
 - customer and price import workflows;
 - price effective dates and scheduled price changes;
-- printer selection, printer defaults, and print-error behavior; and
 - print history and operational logging; and
-- record-selection workflow.
+- the approved physical Word, printer-driver, printer, and label-stock baseline.
 
 Barcode symbologies and customer-specific barcode rules are deferred until a
 milestone after version 0.1.0.

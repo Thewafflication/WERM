@@ -45,5 +45,7 @@ None.
 
 ## Implementation Record
 
-The authorized application service and atomic ODBC product save are
-implemented. The WPF maintenance workflow remains pending.
+The WPF Maintenance tab loads and saves product facts only after a password-
+gated session is established. Saves pass through the authorized application
+service and atomic ODBC product/audit transaction. A physical GUI/database
+workflow test remains pending.

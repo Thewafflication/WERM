@@ -34,10 +34,10 @@ application to populate a Word label template and print the populated document
 directly to the selected label printer. It will not create or print an
 intermediate PDF.
 
-The exact named-field mechanism, such as content controls or bookmarks, remains
-open until template behavior is evaluated. The automation should preserve the
-original template and should not present the Word user interface during normal
-printing.
+Tagged Word content controls are the selected named-field mechanism. ADR-0012
+defines the exact contract, late-bound automation boundary, validation,
+printing, and cleanup behavior. The automation preserves the original template
+and does not present the Word user interface during normal printing.
 
 ## Rationale
 
@@ -67,14 +67,14 @@ Windows printer driver.
 
 ### Follow-up
 
-- Select the Word field mechanism after a representative template spike.
-- Define field mapping, missing-field, null-value, and formatting behavior.
-- Define printer selection, copy count, and print-completion behavior.
-- Define recovery and cleanup when Word or printing fails.
-- Verify page size and margins on the intended label printer.
+- Verify page size, margins, Word automation, and cleanup with the approved
+  template and intended label printer.
+- Record the approved Word, printer-driver, printer, and stock versions in the
+  physical-print evidence.
 
 ## References
 
 - [REQ-0004: Word field population](requirements/req-0004-word-field-population.md)
 - [REQ-0005: Direct Word printing](requirements/req-0005-direct-word-printing.md)
 - [REQ-0006: Microsoft Word prerequisite](requirements/req-0006-word-prerequisite.md)
+- [ADR-0012: Use tagged Word content controls](adr-0012-use-tagged-word-content-controls.md)

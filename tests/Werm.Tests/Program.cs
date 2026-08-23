@@ -12,6 +12,7 @@ using Werm.Core;
 using Werm.Core.Database;
 using Werm.Core.Domain;
 using Werm.Core.Persistence;
+using Werm.Core.Printing;
 using Werm.Core.Security;
 using Werm.Data;
 using Werm.Data.Connection;
@@ -157,7 +158,32 @@ namespace Werm.Tests
                     "TC-0019",
                     "REQ-0017,REQ-0019",
                     "ODBC customer insertion",
-                    VerifyCustomerInsertion)
+                    VerifyCustomerInsertion),
+                new ControlledTest(
+                    "TC-0020",
+                    "REQ-0003,REQ-0004",
+                    "Product customer and price label-field mapping",
+                    VerifyLabelFieldMapping),
+                new ControlledTest(
+                    "TC-0021",
+                    "REQ-0004,REQ-0005",
+                    "Tagged Word template population and direct print arguments",
+                    VerifyWordTemplatePopulation),
+                new ControlledTest(
+                    "TC-0022",
+                    "REQ-0004",
+                    "Missing required Word content-control tag rejection",
+                    VerifyMissingWordFieldRejected),
+                new ControlledTest(
+                    "TC-0023",
+                    "REQ-0003,REQ-0005",
+                    "Selected label record retrieval workflow",
+                    VerifyLabelWorkflow),
+                new ControlledTest(
+                    "TC-0024",
+                    "REQ-0005",
+                    "Word document cleanup after print failure",
+                    VerifyPrintFailureCleanup)
             };
 
             var results = new List<TestResult>();
@@ -701,6 +727,128 @@ namespace Werm.Tests
             Equal(1, connection.LastTransaction.CommitCount, "customer transaction commits");
         }
 
+        private static void VerifyLabelFieldMapping()
+        {
+            Product product;
+            Customer customer;
+            CustomerProductPrice price;
+            CreateLabelRecord(out product, out customer, out price);
+
+            IDictionary<string, string> fields = LabelFieldMapper.Map(
+                product, customer, price);
+            Equal(9, fields.Count, "mapped field count");
+            Equal("0042", fields[LabelFieldNames.ProductPlu], "mapped PLU");
+            Equal("Ground Beef", fields[LabelFieldNames.ProductDescription],
+                "mapped description");
+            Equal("Beef.", fields[LabelFieldNames.IngredientsStatement],
+                "mapped ingredients");
+            Equal("YES", fields[LabelFieldNames.SafeHandlingRequired],
+                "mapped safe handling");
+            Equal("STORE-25", fields[LabelFieldNames.CustomerCode],
+                "mapped customer code");
+            Equal("Market Street", fields[LabelFieldNames.CustomerName],
+                "mapped customer name");
+            Equal("$12.99", fields[LabelFieldNames.PriceAmount], "mapped price");
+            Equal("MARKED", fields[LabelFieldNames.PriceType], "mapped price type");
+            Equal("per lb", fields[LabelFieldNames.PriceBasis], "mapped price basis");
+        }
+
+        private static void VerifyWordTemplatePopulation()
+        {
+            var document = new FakeLabelDocument(LabelFieldNames.Required);
+            var factory = new FakeLabelDocumentFactory(document);
+            var service = new WordLabelPrintService(factory);
+            service.Print(CreateLabelPrintJob());
+
+            Equal("label.dotx", factory.LastTemplatePath, "template path");
+            Equal(9, document.Values.Count, "populated field count");
+            Equal("Ground Beef", document.Values[LabelFieldNames.ProductDescription],
+                "populated description");
+            Equal(1, document.PrintCount, "direct print count");
+            Equal("Test Label Printer", document.PrinterName, "selected printer");
+            Equal(2, document.Copies, "print copies");
+            Equal(true, document.Disposed, "document cleanup after success");
+        }
+
+        private static void VerifyMissingWordFieldRejected()
+        {
+            var available = new List<string>(LabelFieldNames.Required);
+            available.Remove(LabelFieldNames.PriceBasis);
+            var document = new FakeLabelDocument(available);
+            var service = new WordLabelPrintService(
+                new FakeLabelDocumentFactory(document));
+
+            ExpectException<LabelTemplateException>(() => service.Print(CreateLabelPrintJob()));
+            Equal(0, document.Values.Count, "fields written before contract validation");
+            Equal(0, document.PrintCount, "print count for invalid template");
+            Equal(true, document.Disposed, "invalid template document cleanup");
+        }
+
+        private static void VerifyLabelWorkflow()
+        {
+            Product product;
+            Customer customer;
+            CustomerProductPrice price;
+            CreateLabelRecord(out product, out customer, out price);
+            var dataStore = new RecordingWermDataStore
+            {
+                ProductToReturn = product,
+                CustomerToReturn = customer,
+                PriceToReturn = price
+            };
+            var printService = new RecordingLabelPrintService();
+            var workflow = new LabelWorkflowService(dataStore, printService);
+
+            workflow.PrintLabel(
+                "0042", 25, "MARKED", "label.dotx", "Test Label Printer", 3);
+
+            Equal("0042", dataStore.LastProductLookup, "product lookup");
+            Equal(25L, dataStore.LastCustomerLookup, "customer lookup");
+            Equal("MARKED", dataStore.LastPriceTypeLookup, "price type lookup");
+            Equal("label.dotx", printService.LastJob.TemplatePath, "workflow template");
+            Equal(3, printService.LastJob.Copies, "workflow copies");
+            Equal("$12.99", printService.LastJob.FieldValues[LabelFieldNames.PriceAmount],
+                "workflow mapped price");
+        }
+
+        private static void VerifyPrintFailureCleanup()
+        {
+            var document = new FakeLabelDocument(LabelFieldNames.Required)
+            {
+                ThrowOnPrint = true
+            };
+            var service = new WordLabelPrintService(
+                new FakeLabelDocumentFactory(document));
+
+            ExpectException<InvalidOperationException>(() => service.Print(CreateLabelPrintJob()));
+            Equal(1, document.PrintCount, "failed print attempts");
+            Equal(true, document.Disposed, "document cleanup after failure");
+        }
+
+        private static LabelPrintJob CreateLabelPrintJob()
+        {
+            Product product;
+            Customer customer;
+            CustomerProductPrice price;
+            CreateLabelRecord(out product, out customer, out price);
+            return new LabelPrintJob(
+                "label.dotx",
+                "Test Label Printer",
+                2,
+                LabelFieldMapper.Map(product, customer, price));
+        }
+
+        private static void CreateLabelRecord(
+            out Product product,
+            out Customer customer,
+            out CustomerProductPrice price)
+        {
+            product = new Product("0042", "Ground Beef", "Beef.", true, true);
+            customer = new Customer(25, "STORE-25", "Market Street", true);
+            price = new CustomerProductPrice(
+                25, "0042", "MARKED", 1299, "USD", "per lb", true);
+        }
+
         private static OdbcWermDataStore CreateDataStore(RecordingDbConnection connection)
         {
             return new OdbcWermDataStore(
@@ -863,15 +1011,23 @@ namespace Werm.Tests
         {
             public int ProductSaveCount { get; private set; }
             public string LastChangedBy { get; private set; }
+            public Product ProductToReturn { get; set; }
+            public Customer CustomerToReturn { get; set; }
+            public CustomerProductPrice PriceToReturn { get; set; }
+            public string LastProductLookup { get; private set; }
+            public long LastCustomerLookup { get; private set; }
+            public string LastPriceTypeLookup { get; private set; }
 
             public Product GetProduct(string plu)
             {
-                return null;
+                LastProductLookup = plu;
+                return ProductToReturn;
             }
 
             public Customer GetCustomer(long customerId)
             {
-                return null;
+                LastCustomerLookup = customerId;
+                return CustomerToReturn;
             }
 
             public CustomerProductPrice GetCustomerProductPrice(
@@ -879,7 +1035,10 @@ namespace Werm.Tests
                 string productPlu,
                 string priceType)
             {
-                return null;
+                LastCustomerLookup = customerId;
+                LastProductLookup = productPlu;
+                LastPriceTypeLookup = priceType;
+                return PriceToReturn;
             }
 
             public IReadOnlyList<ProductAuditEvent> GetProductAuditHistory(string plu)
@@ -905,6 +1064,78 @@ namespace Werm.Tests
                 string changeReason)
             {
                 return true;
+            }
+        }
+
+        private sealed class FakeLabelDocumentFactory : ILabelDocumentFactory
+        {
+            private readonly ILabelDocument _document;
+
+            public FakeLabelDocumentFactory(ILabelDocument document)
+            {
+                _document = document;
+            }
+
+            public string LastTemplatePath { get; private set; }
+
+            public ILabelDocument CreateFromTemplate(string templatePath)
+            {
+                LastTemplatePath = templatePath;
+                return _document;
+            }
+        }
+
+        private sealed class FakeLabelDocument : ILabelDocument
+        {
+            private readonly IReadOnlyCollection<string> _availableFieldNames;
+
+            public FakeLabelDocument(IEnumerable<string> availableFieldNames)
+            {
+                _availableFieldNames = new List<string>(availableFieldNames).AsReadOnly();
+                Values = new Dictionary<string, string>(StringComparer.Ordinal);
+            }
+
+            public IReadOnlyCollection<string> AvailableFieldNames
+            {
+                get { return _availableFieldNames; }
+            }
+
+            public Dictionary<string, string> Values { get; private set; }
+            public int PrintCount { get; private set; }
+            public string PrinterName { get; private set; }
+            public int Copies { get; private set; }
+            public bool ThrowOnPrint { get; set; }
+            public bool Disposed { get; private set; }
+
+            public void SetField(string fieldName, string value)
+            {
+                Values[fieldName] = value;
+            }
+
+            public void Print(string printerName, int copies)
+            {
+                PrintCount++;
+                PrinterName = printerName;
+                Copies = copies;
+                if (ThrowOnPrint)
+                {
+                    throw new InvalidOperationException("Simulated print failure.");
+                }
+            }
+
+            public void Dispose()
+            {
+                Disposed = true;
+            }
+        }
+
+        private sealed class RecordingLabelPrintService : ILabelPrintService
+        {
+            public LabelPrintJob LastJob { get; private set; }
+
+            public void Print(LabelPrintJob job)
+            {
+                LastJob = job;
             }
         }
 

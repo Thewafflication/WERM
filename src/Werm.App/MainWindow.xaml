@@ -1,18 +1,208 @@
 <Window x:Class="Werm.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="WERM" Height="420" Width="720"
-        MinHeight="320" MinWidth="540"
-        WindowStartupLocation="CenterScreen">
-  <Grid Margin="32">
-    <StackPanel VerticalAlignment="Center">
-      <TextBlock Text="WERM" FontSize="38" FontWeight="SemiBold"
-                 HorizontalAlignment="Center" />
-      <TextBlock Text="Waughtal Enterprise Resource Management"
-                 FontSize="18" Margin="0,8,0,0"
-                 HorizontalAlignment="Center" />
-      <TextBlock Text="Milestone 0.1.0 label-printing foundation"
-                 Margin="0,24,0,0" HorizontalAlignment="Center" />
+        Title="WERM 0.1.0 — Label Printing" Height="780" Width="1060"
+        MinHeight="640" MinWidth="900" WindowStartupLocation="CenterScreen">
+  <Grid Margin="20">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <StackPanel Margin="4,0,4,14">
+      <TextBlock Text="WERM" FontSize="30" FontWeight="SemiBold" />
+      <TextBlock Text="Waughtal Enterprise Resource Management — label printing 0.1.0"
+                 Foreground="#555" />
     </StackPanel>
+
+    <TabControl Grid.Row="1">
+      <TabItem Header="Print label">
+        <Grid Margin="22">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="190" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+
+          <TextBlock Grid.Row="0" Text="Product PLU" VerticalAlignment="Center" />
+          <TextBox x:Name="PrintPluTextBox" Grid.Row="0" Grid.Column="1" Margin="8" />
+          <TextBlock Grid.Row="1" Text="Customer ID" VerticalAlignment="Center" />
+          <TextBox x:Name="PrintCustomerIdTextBox" Grid.Row="1" Grid.Column="1" Margin="8" />
+          <TextBlock Grid.Row="2" Text="Price type" VerticalAlignment="Center" />
+          <TextBox x:Name="PrintPriceTypeTextBox" Grid.Row="2" Grid.Column="1" Margin="8"
+                   Text="MARKED" />
+          <TextBlock Grid.Row="3" Text="Word template" VerticalAlignment="Center" />
+          <TextBox x:Name="TemplatePathTextBox" Grid.Row="3" Grid.Column="1" Margin="8" />
+          <Button Grid.Row="3" Grid.Column="2" Content="Browse…" Margin="4,8"
+                  Padding="16,5" Click="BrowseTemplate_Click" />
+          <TextBlock Grid.Row="4" Text="Label printer" VerticalAlignment="Center" />
+          <ComboBox x:Name="PrinterComboBox" Grid.Row="4" Grid.Column="1" Margin="8"
+                    IsEditable="True" />
+          <TextBlock Grid.Row="5" Text="Copies" VerticalAlignment="Center" />
+          <TextBox x:Name="CopiesTextBox" Grid.Row="5" Grid.Column="1" Margin="8"
+                   Text="1" Width="80" HorizontalAlignment="Left" />
+          <StackPanel Grid.Row="6" Grid.Column="1" Orientation="Horizontal"
+                      VerticalAlignment="Top" Margin="8,18,8,8">
+            <Button Content="Print label" Padding="28,10" Click="PrintLabel_Click" />
+            <TextBlock Text="Word prints directly; no PDF or barcode is produced."
+                       Margin="16,0,0,0" VerticalAlignment="Center" Foreground="#555" />
+          </StackPanel>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="Maintenance">
+        <Grid Margin="16">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+
+          <Border BorderBrush="#CCC" BorderThickness="1" Padding="12" CornerRadius="3">
+            <StackPanel>
+              <WrapPanel VerticalAlignment="Center">
+                <TextBlock Text="Operator" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <TextBox x:Name="OperatorTextBox" Width="150" Margin="0,0,14,0" />
+                <TextBlock Text="Password" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <PasswordBox x:Name="MaintenancePasswordBox" Width="190" Margin="0,0,10,0" />
+                <Button Content="Unlock" Padding="14,5" Margin="0,0,8,0"
+                        Click="UnlockMaintenance_Click" />
+                <Button Content="Lock" Padding="14,5" Click="LockMaintenance_Click" />
+              </WrapPanel>
+              <WrapPanel Margin="0,10,0,0">
+                <TextBlock Text="First-time confirmation" VerticalAlignment="Center"
+                           Margin="0,0,6,0" />
+                <PasswordBox x:Name="ConfirmPasswordBox" Width="190" Margin="0,0,10,0" />
+                <Button Content="Initialize password" Padding="14,5"
+                        Click="InitializePassword_Click" />
+              </WrapPanel>
+            </StackPanel>
+          </Border>
+
+          <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,12,0,0">
+            <StackPanel x:Name="MaintenancePanel" IsEnabled="False">
+              <GroupBox Header="Product" Margin="0,0,0,10">
+                <Grid Margin="12">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="150" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="150" />
+                    <ColumnDefinition Width="*" />
+                  </Grid.ColumnDefinitions>
+                  <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                  </Grid.RowDefinitions>
+                  <TextBlock Text="PLU" VerticalAlignment="Center" />
+                  <TextBox x:Name="ProductPluTextBox" Grid.Column="1" Margin="6" />
+                  <Button Grid.Column="2" Content="Load" Margin="6" Click="LoadProduct_Click" />
+                  <TextBlock Grid.Row="1" Text="Description" VerticalAlignment="Center" />
+                  <TextBox x:Name="ProductDescriptionTextBox" Grid.Row="1" Grid.Column="1"
+                           Grid.ColumnSpan="3" Margin="6" />
+                  <TextBlock Grid.Row="2" Text="Ingredients statement" VerticalAlignment="Top" />
+                  <TextBox x:Name="IngredientsTextBox" Grid.Row="2" Grid.Column="1"
+                           Grid.ColumnSpan="3" Margin="6" Height="54" AcceptsReturn="True" />
+                  <CheckBox x:Name="SafeHandlingCheckBox" Grid.Row="3" Grid.Column="1"
+                            Content="Safe handling required" Margin="6" />
+                  <CheckBox x:Name="ProductActiveCheckBox" Grid.Row="3" Grid.Column="2"
+                            Content="Active" IsChecked="True" Margin="6" />
+                  <TextBlock Grid.Row="4" Text="Change reason" VerticalAlignment="Center" />
+                  <TextBox x:Name="ProductChangeReasonTextBox" Grid.Row="4" Grid.Column="1"
+                           Grid.ColumnSpan="2" Margin="6" ToolTip="Change reason"
+                           Text="GUI product maintenance" />
+                  <Button Grid.Row="4" Grid.Column="3" Content="Save product" Margin="6"
+                          Padding="14,5" HorizontalAlignment="Right" Click="SaveProduct_Click" />
+                </Grid>
+              </GroupBox>
+
+              <GroupBox Header="Customer" Margin="0,0,0,10">
+                <Grid Margin="12">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="150" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="150" />
+                    <ColumnDefinition Width="*" />
+                  </Grid.ColumnDefinitions>
+                  <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                  </Grid.RowDefinitions>
+                  <TextBlock Text="Customer ID (0 = new)" VerticalAlignment="Center" />
+                  <TextBox x:Name="CustomerIdTextBox" Grid.Column="1" Margin="6" Text="0" />
+                  <Button Grid.Column="2" Content="Load" Margin="6" Click="LoadCustomer_Click" />
+                  <TextBlock Grid.Row="1" Text="Customer code" VerticalAlignment="Center" />
+                  <TextBox x:Name="CustomerCodeTextBox" Grid.Row="1" Grid.Column="1" Margin="6" />
+                  <TextBlock Grid.Row="1" Grid.Column="2" Text="Customer name" VerticalAlignment="Center" />
+                  <TextBox x:Name="CustomerNameTextBox" Grid.Row="1" Grid.Column="3" Margin="6" />
+                  <CheckBox x:Name="CustomerActiveCheckBox" Grid.Row="2" Grid.Column="1"
+                            Content="Active" IsChecked="True" Margin="6" />
+                  <Button Grid.Row="2" Grid.Column="3" Content="Save customer" Margin="6"
+                          Padding="14,5" HorizontalAlignment="Right" Click="SaveCustomer_Click" />
+                </Grid>
+              </GroupBox>
+
+              <GroupBox Header="Customer product price">
+                <Grid Margin="12">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="150" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="150" />
+                    <ColumnDefinition Width="*" />
+                  </Grid.ColumnDefinitions>
+                  <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                  </Grid.RowDefinitions>
+                  <TextBlock Text="Customer ID" VerticalAlignment="Center" />
+                  <TextBox x:Name="PriceCustomerIdTextBox" Grid.Column="1" Margin="6" />
+                  <TextBlock Grid.Column="2" Text="Product PLU" VerticalAlignment="Center" />
+                  <TextBox x:Name="PriceProductPluTextBox" Grid.Column="3" Margin="6" />
+                  <TextBlock Grid.Row="1" Text="Price type" VerticalAlignment="Center" />
+                  <TextBox x:Name="PriceTypeTextBox" Grid.Row="1" Grid.Column="1" Margin="6"
+                           Text="MARKED" />
+                  <Button Grid.Row="1" Grid.Column="2" Content="Load" Margin="6"
+                          Click="LoadPrice_Click" />
+                  <TextBlock Grid.Row="2" Text="Amount" VerticalAlignment="Center" />
+                  <TextBox x:Name="PriceAmountTextBox" Grid.Row="2" Grid.Column="1" Margin="6" />
+                  <TextBlock Grid.Row="2" Grid.Column="2" Text="Currency / basis" VerticalAlignment="Center" />
+                  <StackPanel Grid.Row="2" Grid.Column="3" Orientation="Horizontal">
+                    <TextBox x:Name="CurrencyCodeTextBox" Width="65" Margin="6" Text="USD" />
+                    <TextBox x:Name="PriceBasisTextBox" Width="150" Margin="6" />
+                  </StackPanel>
+                  <CheckBox x:Name="PriceActiveCheckBox" Grid.Row="3" Grid.Column="1"
+                            Content="Active" IsChecked="True" Margin="6" />
+                  <TextBlock Grid.Row="4" Text="Change reason" VerticalAlignment="Center" />
+                  <TextBox x:Name="PriceChangeReasonTextBox" Grid.Row="4" Grid.Column="1"
+                           Grid.ColumnSpan="2" Margin="6" ToolTip="Change reason"
+                           Text="GUI price maintenance" />
+                  <Button Grid.Row="4" Grid.Column="3" Content="Save price" Margin="6"
+                          Padding="14,5" HorizontalAlignment="Right" Click="SavePrice_Click" />
+                </Grid>
+              </GroupBox>
+            </StackPanel>
+          </ScrollViewer>
+        </Grid>
+      </TabItem>
+    </TabControl>
+
+    <Border Grid.Row="2" Background="#F3F3F3" Padding="9" Margin="0,12,0,0">
+      <TextBlock x:Name="StatusTextBlock" TextWrapping="Wrap" />
+    </Border>
   </Grid>
 </Window>

@@ -25,7 +25,7 @@ and direct printing.
 
 **Method:** Inspection
 
-**References:** To be assigned
+**References:** [Workstation configuration](../workstation-configuration.md)
 
 Inspect the deployment documentation. Verification passes when the Microsoft
 Word prerequisite and the supported configuration are stated.
@@ -42,4 +42,6 @@ None.
 
 ## Implementation Record
 
-Not yet implemented.
+The packaged workstation instructions identify Microsoft Word desktop, .NET
+Framework 4.8, a matching-bitness SQLite ODBC driver, and the Windows label
+printer driver as prerequisites.

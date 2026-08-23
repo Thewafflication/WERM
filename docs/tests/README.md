@@ -21,6 +21,11 @@
 | [TC-0017](tc-0017-append-only-audit-schema.md) | `REQ-0015` | Verify database triggers protect existing audit rows |
 | [TC-0018](tc-0018-credential-persistence.md) | `REQ-0012`, `REQ-0019` | Verify Base64 verifier mapping through parameterized ADO.NET commands |
 | [TC-0019](tc-0019-customer-insertion.md) | `REQ-0017`, `REQ-0019` | Verify parameterized customer insertion without deletion |
+| [TC-0020](tc-0020-label-field-mapping.md) | `REQ-0003`, `REQ-0004` | Verify the nine product/customer/price field mappings and formats |
+| [TC-0021](tc-0021-word-template-population.md) | `REQ-0004`, `REQ-0005` | Verify tagged-field population and direct-print arguments |
+| [TC-0022](tc-0022-missing-word-field.md) | `REQ-0004` | Verify a missing required Word tag fails before population or printing |
+| [TC-0023](tc-0023-label-record-workflow.md) | `REQ-0003`, `REQ-0005` | Verify selected-record retrieval and print-job creation |
+| [TC-0024](tc-0024-print-failure-cleanup.md) | `REQ-0005` | Verify working-document cleanup after a print failure |
 
 The executable runner writes architecture, runtime, source revision, timestamp,
 verdict, and diagnostics to XML. GitHub Actions retains the Debug executable,

@@ -25,3 +25,11 @@ Build a WPM package after a Release build:
 
 Project decisions, requirements, installation instructions, and the milestone
 plan are indexed in [`docs/README.md`](docs/README.md).
+
+For an operational workstation, follow
+[`docs/workstation-configuration.md`](docs/workstation-configuration.md) and
+author templates against
+[`docs/word-template-contract.md`](docs/word-template-contract.md). The WPF
+screen lets an operator select PLU, customer ID, price type, template, printer,
+and copies. Database changes are available only through an authenticated
+maintenance session.

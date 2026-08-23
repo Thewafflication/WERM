@@ -23,7 +23,7 @@ The stakeholder selected a Word-only workflow for version 0.1.0.
 
 **Method:** Test
 
-**References:** To be assigned
+**References:** `TC-0021`, `TC-0023`, `TC-0024`; physical print test pending
 
 Print a populated representative template to the test label printer and
 inspect the generated working files. Verification passes when the printer
@@ -42,4 +42,7 @@ None.
 
 ## Implementation Record
 
-Not yet implemented.
+The production adapter creates a hidden Word working document, submits a
+synchronous `PrintOut` call to the selected printer, restores Word's prior
+printer, closes without saving, quits Word, and releases COM references. No PDF
+path exists. Physical output verification remains a release gate.

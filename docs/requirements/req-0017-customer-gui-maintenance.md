@@ -44,5 +44,7 @@ None.
 
 ## Implementation Record
 
-The authorized application service and parameterized ODBC customer save are
-implemented. The WPF maintenance workflow remains pending.
+The WPF Maintenance tab loads and saves customers only after a password-gated
+session is established. Saves pass through the authorized application service
+and parameterized ODBC store. A physical GUI/database workflow test remains
+pending.

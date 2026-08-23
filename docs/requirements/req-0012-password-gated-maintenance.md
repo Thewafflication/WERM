@@ -47,4 +47,7 @@ None.
 The core authorization boundary implements salted PBKDF2-HMAC-SHA512 password
 verification, first-run initialization, failed-attempt throttling, fixed
 10-minute sessions, logout, and session revocation on password change. The
-SQLite schema stores only verifier metadata. GUI integration remains pending.
+SQLite schema stores only verifier metadata. The WPF Maintenance tab stays
+disabled until an operator authenticates; printing remains outside that gate.
+All GUI writes call the authorized application service. Physical GUI
+verification remains pending.
