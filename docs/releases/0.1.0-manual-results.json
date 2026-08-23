@@ -1,14 +1,14 @@
 {
-  "release": "0.1.0-rc.2",
-  "implementationSourceRevision": "1fbc3eccc7b725a1ea501084649d338213cbe6a8",
-  "recordedAtUtc": "2026-08-23T02:35:00Z",
+  "release": "0.1.0-rc.3",
+  "implementationSourceRevision": "288b7b2199f5bec6f16b997c9ddceb86aa8a09d0",
+  "recordedAtUtc": "2026-08-23T03:10:00Z",
   "environment": "Development workstation prerequisite inspection",
   "results": [
     {
       "id": "TC-0025",
       "status": "Blocked",
       "rationale": "No approved SQLite ODBC driver inventory was available and wsh.exe was not found on PATH.",
-      "evidence": "PowerShell prerequisite inspection; WPM 1.0.17 was present."
+      "evidence": "PowerShell prerequisite inspection found no SQLite-named ODBC registration and no wsh.exe on PATH; WPM 1.0.17 was present."
     },
     {
       "id": "TC-0026",
