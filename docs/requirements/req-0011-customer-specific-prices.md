@@ -24,7 +24,7 @@ and one customer may require more than one price type.
 
 **Method:** Test
 
-**References:** To be assigned
+**References:** `TC-0006`, `TC-0007`
 
 Store different prices for the same PLU and different customers, then retrieve
 each association. Verification passes when every customer receives only its
@@ -43,5 +43,6 @@ None.
 
 ## Implementation Record
 
-The proposed schema defines `CustomerProductPrice` with a composite primary
-key of customer, PLU, and price type.
+The schema defines `CustomerProductPrice` with a composite primary key of
+customer, PLU, and price type. The core model validates those identity values,
+non-negative minor units, and the initial three-character currency contract.

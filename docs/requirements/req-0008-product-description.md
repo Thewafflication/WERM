@@ -22,7 +22,7 @@ The description identifies the product to users and may be printed on a label.
 
 **Method:** Test
 
-**References:** To be assigned
+**References:** `TC-0004`, `TC-0007`
 
 Attempt to save a product without a description. Verification passes when the
 application rejects the product and the database retains no incomplete row.
@@ -39,4 +39,5 @@ None.
 
 ## Implementation Record
 
-The proposed schema defines `Product.Description` as required text.
+The schema defines `Product.Description` as required text. The core `Product`
+model rejects blank descriptions before persistence.

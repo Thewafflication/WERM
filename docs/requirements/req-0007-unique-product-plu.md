@@ -23,7 +23,7 @@ related label data.
 
 **Method:** Test and inspection
 
-**References:** To be assigned
+**References:** `TC-0004`, `TC-0007`
 
 Inspect the schema constraint, attempt to insert a product without a PLU, and
 attempt to insert two products with the same PLU. Verification passes when the
@@ -41,4 +41,5 @@ None.
 
 ## Implementation Record
 
-The proposed schema defines `Product.PLU` as a required text primary key.
+The schema defines `Product.PLU` as a required text primary key. The core
+`Product` model rejects blank values and preserves PLUs as text.

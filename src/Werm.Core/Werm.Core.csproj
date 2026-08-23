@@ -13,6 +13,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApplicationIdentity.cs" />
+    <Compile Include="Database\InitialSchemaContract.cs" />
+    <Compile Include="Database\SqlMigration.cs" />
+    <Compile Include="Database\SqlMigrationParser.cs" />
+    <Compile Include="Domain\Customer.cs" />
+    <Compile Include="Domain\CustomerProductPrice.cs" />
+    <Compile Include="Domain\DomainText.cs" />
+    <Compile Include="Domain\Product.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -23,7 +23,7 @@ applies to the product.
 
 **Method:** Test
 
-**References:** To be assigned
+**References:** `TC-0005`, `TC-0007`
 
 Save and reload products representing both supported states. Verification
 passes when the retrieved state matches the saved state in each case.
@@ -40,5 +40,6 @@ None.
 
 ## Implementation Record
 
-The proposed schema defines `Product.SafeHandlingRequired` as a required
-Boolean value represented by zero or one.
+The schema defines `Product.SafeHandlingRequired` as a required Boolean value
+represented by zero or one. The core `Product` model exposes the value as a
+Boolean.

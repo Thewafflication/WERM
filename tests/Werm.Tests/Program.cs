@@ -4,8 +4,11 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Versioning;
+using System.Text.RegularExpressions;
 using System.Xml;
 using Werm.Core;
+using Werm.Core.Database;
+using Werm.Core.Domain;
 
 namespace Werm.Tests
 {
@@ -45,6 +48,12 @@ namespace Werm.Tests
             {
                 throw new ArgumentException("--expected-architecture is required.");
             }
+            string repositoryRoot = GetOption(args, "--repository-root");
+            if (string.IsNullOrWhiteSpace(repositoryRoot))
+            {
+                throw new ArgumentException("--repository-root is required.");
+            }
+            repositoryRoot = Path.GetFullPath(repositoryRoot);
 
             var tests = new[]
             {
@@ -62,7 +71,32 @@ namespace Werm.Tests
                     "TC-0003",
                     "ADR-0008",
                     "Explicit process architecture",
-                    () => VerifyProcessArchitecture(expectedArchitecture))
+                    () => VerifyProcessArchitecture(expectedArchitecture)),
+                new ControlledTest(
+                    "TC-0004",
+                    "REQ-0007,REQ-0008",
+                    "Product identity and description validation",
+                    VerifyProductRequiredValues),
+                new ControlledTest(
+                    "TC-0005",
+                    "REQ-0009,REQ-0010",
+                    "Product label facts are preserved",
+                    VerifyProductLabelFacts),
+                new ControlledTest(
+                    "TC-0006",
+                    "REQ-0011",
+                    "Customer-specific price identity and amount validation",
+                    VerifyCustomerProductPrice),
+                new ControlledTest(
+                    "TC-0007",
+                    "REQ-0002,REQ-0007,REQ-0008,REQ-0009,REQ-0010,REQ-0011",
+                    "Initial SQLite migration contract",
+                    () => VerifyInitialMigration(repositoryRoot)),
+                new ControlledTest(
+                    "TC-0008",
+                    "REQ-0020",
+                    "Database installer safe connection failure",
+                    () => VerifyInstallerSafeFailure(repositoryRoot, expectedArchitecture))
             };
 
             var results = new List<TestResult>();
@@ -144,6 +178,190 @@ namespace Werm.Tests
             {
                 throw new InvalidOperationException(
                     "Expected a " + expectedArchitecture + " process but executed as " + actualArchitecture + ".");
+            }
+        }
+
+        private static void VerifyProductRequiredValues()
+        {
+            ExpectException<ArgumentException>(() =>
+                new Product(" ", "Ground Beef", null, true, true));
+            ExpectException<ArgumentException>(() =>
+                new Product("0042", " ", null, true, true));
+
+            var product = new Product(" 0042 ", " Ground Beef ", null, true, true);
+            Equal("0042", product.Plu, "PLU normalization");
+            Equal("Ground Beef", product.Description, "description normalization");
+        }
+
+        private static void VerifyProductLabelFacts()
+        {
+            const string ingredients = "BEEF, WATER, SALT.\r\nCONTAINS: NONE.";
+            var safeProduct = new Product("0042", "Ground Beef", ingredients, true, true);
+            var ordinaryProduct = new Product("0043", "Roast", null, false, true);
+
+            Equal(ingredients, safeProduct.IngredientsStatement, "ingredients statement");
+            Equal(true, safeProduct.SafeHandlingRequired, "safe-handling required state");
+            Equal(false, ordinaryProduct.SafeHandlingRequired, "safe-handling not-required state");
+            Equal(null, ordinaryProduct.IngredientsStatement, "optional ingredients statement");
+        }
+
+        private static void VerifyCustomerProductPrice()
+        {
+            var customer = new Customer(17, " STORE-17 ", " Downtown Store ", true);
+            var price = new CustomerProductPrice(
+                customer.CustomerId,
+                " 0042 ",
+                " Retail ",
+                1299,
+                " usd ",
+                "per package",
+                true);
+
+            Equal(17L, price.CustomerId, "customer identity");
+            Equal("0042", price.ProductPlu, "product identity");
+            Equal("Retail", price.PriceType, "price type");
+            Equal(1299L, price.AmountMinorUnits, "minor-unit amount");
+            Equal("USD", price.CurrencyCode, "currency normalization");
+            ExpectException<ArgumentOutOfRangeException>(() =>
+                new CustomerProductPrice(17, "0042", "Retail", -1, "USD", null, true));
+            ExpectException<ArgumentException>(() =>
+                new CustomerProductPrice(17, "0042", "Retail", 1, "US", null, true));
+        }
+
+        private static void VerifyInitialMigration(string repositoryRoot)
+        {
+            string migrationPath = Path.Combine(
+                repositoryRoot,
+                "database",
+                "migrations",
+                InitialSchemaContract.MigrationName);
+            SqlMigration migration = SqlMigrationParser.Read(migrationPath);
+            if (migration.Batches.Count != 10)
+            {
+                throw new InvalidOperationException(
+                    "Expected 10 controlled migration batches but found " + migration.Batches.Count + ".");
+            }
+
+            foreach (string tableName in InitialSchemaContract.ExpectedTableNames)
+            {
+                string pattern = @"(?im)^\s*CREATE\s+TABLE\s+" + Regex.Escape(tableName) + @"\s*\(";
+                if (!Regex.IsMatch(migration.Sql, pattern))
+                {
+                    throw new InvalidOperationException("Missing required table definition: " + tableName);
+                }
+            }
+
+            if (!Regex.IsMatch(migration.Sql, @"(?im)^\s*PRAGMA\s+user_version\s*=\s*1\s*;"))
+            {
+                throw new InvalidOperationException("Migration does not set SQLite user_version to 1.");
+            }
+            if (Regex.IsMatch(migration.Sql, @"(?i)\bbarcode\b"))
+            {
+                throw new InvalidOperationException("The 0.1.0 migration contains deferred barcode scope.");
+            }
+        }
+
+        private static void VerifyInstallerSafeFailure(
+            string repositoryRoot,
+            string expectedArchitecture)
+        {
+            string worker = Path.Combine(repositoryRoot, "tools", "Install-WermDatabase.ps1");
+            if (!File.Exists(worker))
+            {
+                throw new FileNotFoundException("The ODBC installer worker was not found.", worker);
+            }
+
+            string testRoot = Path.Combine(
+                repositoryRoot,
+                "out",
+                "test-work",
+                "database-installer",
+                expectedArchitecture,
+                Guid.NewGuid().ToString("N"));
+            string databasePath = Path.Combine(testRoot, "must-not-remain.db");
+            Directory.CreateDirectory(testRoot);
+
+            try
+            {
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    Arguments = "-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File " +
+                        QuoteArgument(worker) + " -DatabasePath " + QuoteArgument(databasePath) +
+                        " -DriverName WERM-CONTROLLED-MISSING-DRIVER",
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false
+                };
+
+                using (Process process = Process.Start(startInfo))
+                {
+                    var standardOutputTask = process.StandardOutput.ReadToEndAsync();
+                    var standardErrorTask = process.StandardError.ReadToEndAsync();
+                    if (!process.WaitForExit(30000))
+                    {
+                        process.Kill();
+                        throw new TimeoutException("The installer did not fail within 30 seconds.");
+                    }
+                    string standardOutput = standardOutputTask.GetAwaiter().GetResult();
+                    string standardError = standardErrorTask.GetAwaiter().GetResult();
+                    if (process.ExitCode != 4)
+                    {
+                        throw new InvalidOperationException(
+                            "Expected installer exit 4 but received " + process.ExitCode + ". Output: " +
+                            standardOutput + " Error: " + standardError);
+                    }
+                    if (!standardOutput.Contains("Process architecture: " + expectedArchitecture.ToUpperInvariant()))
+                    {
+                        throw new InvalidOperationException(
+                            "The installer did not run with the selected process architecture. Output: " +
+                            standardOutput);
+                    }
+                }
+
+                if (File.Exists(databasePath))
+                {
+                    throw new InvalidOperationException(
+                        "The failing installer left a new database file behind.");
+                }
+            }
+            finally
+            {
+                if (Directory.Exists(testRoot))
+                {
+                    Directory.Delete(testRoot, true);
+                }
+            }
+        }
+
+        private static string QuoteArgument(string value)
+        {
+            return "\"" + value.Replace("\"", "\\\"") + "\"";
+        }
+
+        private static void ExpectException<TException>(Action action)
+            where TException : Exception
+        {
+            try
+            {
+                action();
+            }
+            catch (TException)
+            {
+                return;
+            }
+
+            throw new InvalidOperationException(
+                "Expected exception " + typeof(TException).Name + " was not thrown.");
+        }
+
+        private static void Equal<T>(T expected, T actual, string fieldName)
+        {
+            if (!EqualityComparer<T>.Default.Equals(expected, actual))
+            {
+                throw new InvalidOperationException(
+                    fieldName + " mismatch. Expected '" + expected + "' but received '" + actual + "'.");
             }
         }
 

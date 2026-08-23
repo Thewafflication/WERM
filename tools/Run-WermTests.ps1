@@ -41,7 +41,7 @@ if ([string]::IsNullOrWhiteSpace($sourceRevision)) {
 }
 
 & $testExecutable --results $ResultsPath --source-revision $sourceRevision `
-    --expected-architecture $Architecture
+    --expected-architecture $Architecture --repository-root $repositoryRoot
 if ($LASTEXITCODE -ne 0) {
     throw "WERM controlled tests failed with exit code $LASTEXITCODE."
 }

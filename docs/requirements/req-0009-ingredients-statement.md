@@ -23,7 +23,7 @@ The ingredients statement may be required on the product label.
 
 **Method:** Test
 
-**References:** To be assigned
+**References:** `TC-0005`, `TC-0007`
 
 Save and reload a product containing a representative ingredients statement.
 Verification passes when the retrieved text exactly matches the saved text.
@@ -40,4 +40,5 @@ None.
 
 ## Implementation Record
 
-The proposed schema defines `Product.IngredientsStatement` as optional text.
+The schema defines `Product.IngredientsStatement` as optional text. The core
+`Product` model preserves representative non-empty text exactly.

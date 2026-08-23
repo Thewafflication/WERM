@@ -27,7 +27,8 @@ database files during setup.
 
 **Method:** Test
 
-**References:** To be assigned
+**References:** `TC-0008`; successful-installation and repeat-run cases pending
+the approved SQLite ODBC driver
 
 Run the installer against a missing database, the resulting current database,
 an unrecognized non-empty database, a database newer than the installer, and a
