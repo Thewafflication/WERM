@@ -6,6 +6,14 @@
 
 **Level:** Application-component test
 
+**Priority:** Required release gate
+
+**Implementation:** `tests/Werm.Tests/Program.cs`
+
+**Execution contract:** [Automated controlled-test execution contract](automated-test-execution-contract.md)
+
+**Technique:** Interface-contract scenario testing
+
 ## Objective
 
 Populate a document double exposing every required content-control tag and

@@ -6,6 +6,14 @@
 
 **Level:** Component test
 
+**Priority:** Required release gate
+
+**Implementation:** `tests/Werm.Tests/Program.cs`
+
+**Execution contract:** [Automated controlled-test execution contract](automated-test-execution-contract.md)
+
+**Technique:** Requirements-based mapping example
+
 ## Objective
 
 Map a known active product, customer, and customer-product price to the Word

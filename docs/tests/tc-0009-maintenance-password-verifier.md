@@ -6,6 +6,14 @@
 
 **Level:** Security unit test
 
+**Priority:** Required release gate
+
+**Implementation:** `tests/Werm.Tests/Program.cs`
+
+**Execution contract:** [Automated controlled-test execution contract](automated-test-execution-contract.md)
+
+**Technique:** Boundary-value and negative testing
+
 ## Objective
 
 Verify the approved password policy, salted PBKDF2-HMAC-SHA512 verifier, and

@@ -120,3 +120,65 @@ jobs:
             out/bin/Werm.Tests/${{ matrix.architecture }}/Debug/*
             out/test-results/${{ matrix.architecture }}/Debug/werm-test-results.xml
             out/packages/werm-${{ matrix.architecture }}-0.1.0-ci.${{ github.run_number }}.zip
+
+  release-evidence:
+    name: Aggregate traceability and candidate report
+    needs: build-test-package
+    runs-on: windows-2025
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out controlled specifications
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          submodules: recursive
+
+      - name: Download architecture evidence
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: werm-*-${{ github.sha }}
+          path: downloaded-evidence
+
+      - name: Validate traceability and generate test report
+        shell: pwsh
+        run: |
+          $x86Result = Get-ChildItem downloaded-evidence -Recurse `
+            -Filter werm-test-results.xml | Where-Object {
+              $_.FullName -match '[\\/]x86[\\/]Debug[\\/]'
+            } | Select-Object -First 1
+          $x64Result = Get-ChildItem downloaded-evidence -Recurse `
+            -Filter werm-test-results.xml | Where-Object {
+              $_.FullName -match '[\\/]x64[\\/]Debug[\\/]'
+            } | Select-Object -First 1
+          $x86Package = Get-ChildItem downloaded-evidence -Recurse `
+            -Filter 'werm-x86-*.zip' | Select-Object -First 1
+          $x64Package = Get-ChildItem downloaded-evidence -Recurse `
+            -Filter 'werm-x64-*.zip' | Select-Object -First 1
+          foreach ($input in @($x86Result, $x64Result, $x86Package, $x64Package)) {
+            if (-not $input) {
+              throw 'The architecture evidence set is incomplete.'
+            }
+          }
+
+          ./tools/Test-WermTraceability.ps1 `
+            -ResultsPath @($x86Result.FullName, $x64Result.FullName) `
+            -ManualResultsPath 'docs/releases/0.1.0-manual-results.json'
+          ./tools/New-WermTestReport.ps1 `
+            -SourceRevision $env:GITHUB_SHA `
+            -X86ResultsPath $x86Result.FullName `
+            -X64ResultsPath $x64Result.FullName `
+            -X86PackagePath $x86Package.FullName `
+            -X64PackagePath $x64Package.FullName `
+            -ManualResultsPath 'docs/releases/0.1.0-manual-results.json' `
+            -WpmVersion '1.0.16 (CI pinned)'
+
+      - name: Upload aggregate release evidence
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: werm-release-evidence-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            out/release-evidence/*
+            docs/releases/0.1.0-manual-results.json

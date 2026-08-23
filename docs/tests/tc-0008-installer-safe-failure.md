@@ -2,9 +2,17 @@
 
 **Status:** Controlled
 
-**Requirement:** `REQ-0020`
+**Requirements:** `REQ-0019`, `REQ-0020`
 
 **Level:** System test
+
+**Priority:** Required release gate
+
+**Implementation:** `tests/Werm.Tests/Program.cs`
+
+**Execution contract:** [Automated controlled-test execution contract](automated-test-execution-contract.md)
+
+**Technique:** Controlled fault injection
 
 ## Objective
 

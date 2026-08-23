@@ -96,12 +96,12 @@ namespace Werm.Tests
                     VerifyCustomerProductPrice),
                 new ControlledTest(
                     "TC-0007",
-                    "REQ-0002,REQ-0007,REQ-0008,REQ-0009,REQ-0010,REQ-0011",
+                    "REQ-0002,REQ-0007,REQ-0008,REQ-0009,REQ-0010,REQ-0011,REQ-0015",
                     "Initial SQLite migration contract",
                     () => VerifyInitialMigration(repositoryRoot)),
                 new ControlledTest(
                     "TC-0008",
-                    "REQ-0020",
+                    "REQ-0019,REQ-0020",
                     "Database installer safe connection failure",
                     () => VerifyInstallerSafeFailure(repositoryRoot, expectedArchitecture)),
                 new ControlledTest(
@@ -121,22 +121,22 @@ namespace Werm.Tests
                     VerifyAuthenticationThrottling),
                 new ControlledTest(
                     "TC-0012",
-                    "REQ-0019",
+                    "REQ-0002,REQ-0019",
                     "ODBC connection-string contract",
                     () => VerifyOdbcConnectionOptions(repositoryRoot)),
                 new ControlledTest(
                     "TC-0013",
-                    "REQ-0013,REQ-0014",
+                    "REQ-0013,REQ-0014,REQ-0019",
                     "Atomic product creation and audit",
                     VerifyAtomicProductAudit),
                 new ControlledTest(
                     "TC-0014",
-                    "REQ-0013",
+                    "REQ-0013,REQ-0019",
                     "Audit failure rolls back product change",
                     VerifyAuditFailureRollback),
                 new ControlledTest(
                     "TC-0015",
-                    "REQ-0011,REQ-0013,REQ-0014",
+                    "REQ-0011,REQ-0013,REQ-0014,REQ-0019",
                     "Customer-price audit lineage",
                     VerifyPriceAuditLineage),
                 new ControlledTest(

@@ -44,6 +44,7 @@ Version 0.1.0 does not store, generate, populate, or print barcodes.
 - [Project process](project-process.md)
 - [Milestone 0.1.0 plan](milestones/milestone-0.1.0.md)
 - [Controlled test specifications](tests/README.md)
+- [Release records and 0.1.0 readiness](releases/README.md)
 
 ## Open Decisions
 

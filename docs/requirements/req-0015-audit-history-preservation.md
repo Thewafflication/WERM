@@ -25,7 +25,7 @@ Restoring product values is represented by a new event instead.
 
 **Method:** Test and inspection
 
-**References:** `TC-0007`, `TC-0017`
+**References:** `TC-0007`, `TC-0017`, `TC-0026`
 
 Inspect the GUI and application data-access operations, then restore an earlier
 product state. Verification passes when no audit update or delete operation is
@@ -45,4 +45,6 @@ None.
 
 The data store exposes append and read operations but no audit update or delete
 operation. Four SQLite triggers reject updates and deletes against existing
-events and field changes. GUI inspection and restore workflow remain pending.
+events and field changes. The WPF Product area displays revision/parent lineage
+and ordered field changes without an edit action. Physical GUI/database
+inspection remains allocated to `TC-0026`.

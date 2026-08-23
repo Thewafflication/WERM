@@ -6,6 +6,14 @@
 
 **Level:** Build verification
 
+**Priority:** Required release gate
+
+**Implementation:** `tests/Werm.Tests/Program.cs`
+
+**Execution contract:** [Automated controlled-test execution contract](automated-test-execution-contract.md)
+
+**Technique:** Decision-based configuration coverage
+
 ## Objective
 
 Verify that the selected x86 or x64 solution target produces a process with

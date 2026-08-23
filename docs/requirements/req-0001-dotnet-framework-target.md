@@ -22,7 +22,7 @@ The stakeholder selected .NET Framework 4.8 as the application runtime.
 
 **Method:** Inspection
 
-**References:** `TC-0001`, `TC-0002`
+**References:** `TC-0001`, `TC-0002`, `TC-0028`
 
 Inspect the project configuration and built assembly metadata. Verification
 passes when each shipped application assembly targets .NET Framework 4.8.

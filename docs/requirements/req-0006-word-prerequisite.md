@@ -25,7 +25,8 @@ and direct printing.
 
 **Method:** Inspection
 
-**References:** [Workstation configuration](../workstation-configuration.md)
+**References:** `TC-0027`, `TC-0028`, and
+[Workstation configuration](../workstation-configuration.md)
 
 Inspect the deployment documentation. Verification passes when the Microsoft
 Word prerequisite and the supported configuration are stated.

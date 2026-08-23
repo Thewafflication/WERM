@@ -111,7 +111,7 @@ namespace Werm.App
                         "Authentication failed or maintenance is temporarily locked.");
                 }
                 _maintenanceSession = session;
-                MaintenancePanel.IsEnabled = true;
+                SetMaintenanceWritesEnabled(true);
             });
         }
 
@@ -122,7 +122,7 @@ namespace Werm.App
                 _services.Authorizer.EndSession(_maintenanceSession);
             }
             _maintenanceSession = null;
-            MaintenancePanel.IsEnabled = false;
+            SetMaintenanceWritesEnabled(false);
             MaintenancePasswordBox.Clear();
             ConfirmPasswordBox.Clear();
             SetStatus("Maintenance locked.");
@@ -158,6 +158,43 @@ namespace Werm.App
                     ProductActiveCheckBox.IsChecked == true);
                 _services.MaintenanceService.SaveProduct(
                     _maintenanceSession, product, ProductChangeReasonTextBox.Text);
+            });
+        }
+
+        private void LoadAuditHistory_Click(object sender, RoutedEventArgs e)
+        {
+            Run("Product audit history loaded.", () =>
+            {
+                DemandConfigured();
+                AuditHistoryListBox.Items.Clear();
+                foreach (var auditEvent in _services.MaintenanceService
+                    .GetProductAuditHistory(ProductPluTextBox.Text))
+                {
+                    string parent = auditEvent.ParentAuditEventId.HasValue
+                        ? auditEvent.ParentAuditEventId.Value.ToString(CultureInfo.InvariantCulture)
+                        : "root";
+                    AuditHistoryListBox.Items.Add(string.Format(
+                        CultureInfo.InvariantCulture,
+                        "Revision {0} | Event {1} | Parent {2} | {3:u} | {4} | {5} | {6}",
+                        auditEvent.RevisionNumber,
+                        auditEvent.AuditEventId,
+                        parent,
+                        auditEvent.ChangedAtUtc,
+                        auditEvent.ChangeType,
+                        auditEvent.ChangedBy,
+                        auditEvent.ChangeReason));
+                    foreach (var change in auditEvent.Changes)
+                    {
+                        AuditHistoryListBox.Items.Add(string.Format(
+                            CultureInfo.InvariantCulture,
+                            "  {0}:{1}  {2}  [{3}] -> [{4}]",
+                            change.EntityType,
+                            change.EntityKey,
+                            change.FieldName,
+                            change.OldValue ?? "<null>",
+                            change.NewValue ?? "<null>"));
+                    }
+                }
             });
         }
 
@@ -263,7 +300,7 @@ namespace Werm.App
             catch (MaintenanceAuthorizationException exception)
             {
                 _maintenanceSession = null;
-                MaintenancePanel.IsEnabled = false;
+                SetMaintenanceWritesEnabled(false);
                 SetStatus("Maintenance locked: " + exception.Message);
             }
             catch (Exception exception)
@@ -278,6 +315,13 @@ namespace Werm.App
             {
                 StatusTextBlock.Text = message;
             }
+        }
+
+        private void SetMaintenanceWritesEnabled(bool enabled)
+        {
+            SaveProductButton.IsEnabled = enabled;
+            SaveCustomerButton.IsEnabled = enabled;
+            SavePriceButton.IsEnabled = enabled;
         }
 
         private static long ParsePositiveLong(string value, string name)

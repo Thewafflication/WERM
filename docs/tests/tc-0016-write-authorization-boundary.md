@@ -6,6 +6,14 @@
 
 **Level:** Application-service test
 
+**Priority:** Required release gate
+
+**Implementation:** `tests/Werm.Tests/Program.cs`
+
+**Execution contract:** [Automated controlled-test execution contract](automated-test-execution-contract.md)
+
+**Technique:** Authorization decision-table testing
+
 ## Objective
 
 Attempt a product write without a maintenance session and again after correct

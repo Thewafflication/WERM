@@ -6,6 +6,14 @@
 
 **Level:** Schema inspection
 
+**Priority:** Required release gate
+
+**Implementation:** `tests/Werm.Tests/Program.cs`
+
+**Execution contract:** [Automated controlled-test execution contract](automated-test-execution-contract.md)
+
+**Technique:** Requirements-based schema inspection
+
 ## Objective
 
 Verify that both audit tables have `BEFORE UPDATE` and `BEFORE DELETE` triggers

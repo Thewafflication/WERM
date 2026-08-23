@@ -1,0 +1,32 @@
+{
+  "release": "0.1.0-rc.1",
+  "implementationSourceRevision": "6f71c748df4f73ff4d80a63d9aaabed61f667bab",
+  "recordedAtUtc": "2026-08-23T02:13:00Z",
+  "environment": "Development workstation prerequisite inspection",
+  "results": [
+    {
+      "id": "TC-0025",
+      "status": "Blocked",
+      "rationale": "No approved SQLite ODBC driver inventory was available and wsh.exe was not found on PATH.",
+      "evidence": "PowerShell prerequisite inspection; WPM 1.0.17 was present."
+    },
+    {
+      "id": "TC-0026",
+      "status": "Blocked",
+      "rationale": "The real ODBC database precondition from TC-0025 is unmet.",
+      "evidence": "No production or substitute provider was used."
+    },
+    {
+      "id": "TC-0027",
+      "status": "Blocked",
+      "rationale": "Word is registered, but no controlled template, label-printer inventory, approved driver, or stock was available; printer inventory access was denied.",
+      "evidence": "Word.Application ProgID inspection and Windows printer inventory attempt."
+    },
+    {
+      "id": "TC-0028",
+      "status": "Blocked",
+      "rationale": "A clean administrative Windows VM was not available for machine-wide WPM installation and removal.",
+      "evidence": "Archive structure and metadata were validated locally; machine install was not attempted."
+    }
+  ]
+}

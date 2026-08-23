@@ -89,7 +89,7 @@
           </Border>
 
           <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,12,0,0">
-            <StackPanel x:Name="MaintenancePanel" IsEnabled="False">
+            <StackPanel x:Name="MaintenancePanel">
               <GroupBox Header="Product" Margin="0,0,0,10">
                 <Grid Margin="12">
                   <Grid.ColumnDefinitions>
@@ -99,6 +99,8 @@
                     <ColumnDefinition Width="*" />
                   </Grid.ColumnDefinitions>
                   <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -122,8 +124,15 @@
                   <TextBox x:Name="ProductChangeReasonTextBox" Grid.Row="4" Grid.Column="1"
                            Grid.ColumnSpan="2" Margin="6" ToolTip="Change reason"
                            Text="GUI product maintenance" />
-                  <Button Grid.Row="4" Grid.Column="3" Content="Save product" Margin="6"
+                  <Button x:Name="SaveProductButton" Grid.Row="4" Grid.Column="3"
+                          Content="Save product" IsEnabled="False" Margin="6"
                           Padding="14,5" HorizontalAlignment="Right" Click="SaveProduct_Click" />
+                  <Button Grid.Row="5" Grid.Column="3" Content="Load audit history" Margin="6"
+                          Padding="14,5" HorizontalAlignment="Right"
+                          Click="LoadAuditHistory_Click" />
+                  <ListBox x:Name="AuditHistoryListBox" Grid.Row="6" Grid.ColumnSpan="4"
+                           Height="150" Margin="6" FontFamily="Consolas"
+                           HorizontalContentAlignment="Stretch" />
                 </Grid>
               </GroupBox>
 
@@ -149,8 +158,10 @@
                   <TextBox x:Name="CustomerNameTextBox" Grid.Row="1" Grid.Column="3" Margin="6" />
                   <CheckBox x:Name="CustomerActiveCheckBox" Grid.Row="2" Grid.Column="1"
                             Content="Active" IsChecked="True" Margin="6" />
-                  <Button Grid.Row="2" Grid.Column="3" Content="Save customer" Margin="6"
-                          Padding="14,5" HorizontalAlignment="Right" Click="SaveCustomer_Click" />
+                  <Button x:Name="SaveCustomerButton" Grid.Row="2" Grid.Column="3"
+                          Content="Save customer" IsEnabled="False" Margin="6"
+                          Padding="14,5" HorizontalAlignment="Right"
+                          Click="SaveCustomer_Click" />
                 </Grid>
               </GroupBox>
 
@@ -191,8 +202,10 @@
                   <TextBox x:Name="PriceChangeReasonTextBox" Grid.Row="4" Grid.Column="1"
                            Grid.ColumnSpan="2" Margin="6" ToolTip="Change reason"
                            Text="GUI price maintenance" />
-                  <Button Grid.Row="4" Grid.Column="3" Content="Save price" Margin="6"
-                          Padding="14,5" HorizontalAlignment="Right" Click="SavePrice_Click" />
+                  <Button x:Name="SavePriceButton" Grid.Row="4" Grid.Column="3"
+                          Content="Save price" IsEnabled="False" Margin="6"
+                          Padding="14,5" HorizontalAlignment="Right"
+                          Click="SavePrice_Click" />
                 </Grid>
               </GroupBox>
             </StackPanel>

@@ -6,6 +6,14 @@
 
 **Level:** Unit test
 
+**Priority:** Required release gate
+
+**Implementation:** `tests/Werm.Tests/Program.cs`
+
+**Execution contract:** [Automated controlled-test execution contract](automated-test-execution-contract.md)
+
+**Technique:** Requirements-based example
+
 ## Objective
 
 Verify that the application shell consumes a single core identity for the WERM

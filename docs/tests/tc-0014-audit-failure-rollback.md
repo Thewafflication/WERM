@@ -2,9 +2,17 @@
 
 **Status:** Controlled
 
-**Requirement:** `REQ-0013`
+**Requirements:** `REQ-0013`, `REQ-0019`
 
 **Level:** Data-component failure test
+
+**Priority:** Required release gate
+
+**Implementation:** `tests/Werm.Tests/Program.cs`
+
+**Execution contract:** [Automated controlled-test execution contract](automated-test-execution-contract.md)
+
+**Technique:** Controlled fault injection
 
 ## Objective
 

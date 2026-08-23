@@ -6,6 +6,14 @@
 
 **Level:** Application-service test
 
+**Priority:** Required release gate
+
+**Implementation:** `tests/Werm.Tests/Program.cs`
+
+**Execution contract:** [Automated controlled-test execution contract](automated-test-execution-contract.md)
+
+**Technique:** End-to-end service scenario
+
 ## Objective
 
 Request a label by PLU, customer ID, and price type from a store containing a

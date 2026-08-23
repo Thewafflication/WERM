@@ -6,6 +6,14 @@
 
 **Level:** Build verification
 
+**Priority:** Required release gate
+
+**Implementation:** `tests/Werm.Tests/Program.cs`
+
+**Execution contract:** [Automated controlled-test execution contract](automated-test-execution-contract.md)
+
+**Technique:** Requirements-based attribute inspection
+
 ## Objective
 
 Verify that the compiled WERM core assembly declares .NET Framework 4.8 as its

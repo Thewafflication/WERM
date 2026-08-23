@@ -6,6 +6,11 @@ Microsoft Word label template, and prints through Word to a label printer.
 
 The first milestone deliberately excludes barcode and PDF behavior.
 
+Engineering candidates currently build and package successfully, but 0.1.0 is
+not approved for release. The [readiness record](docs/releases/0.1.0-readiness.md)
+identifies the blocked ODBC/WSH, GUI, physical Word/printer, clean-install, and
+process-review gates.
+
 ## Build and test
 
 The solution targets .NET Framework 4.8 and supports x86 and x64 builds:

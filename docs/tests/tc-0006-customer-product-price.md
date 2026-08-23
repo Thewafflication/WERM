@@ -6,6 +6,14 @@
 
 **Level:** Unit test
 
+**Priority:** Required release gate
+
+**Implementation:** `tests/Werm.Tests/Program.cs`
+
+**Execution contract:** [Automated controlled-test execution contract](automated-test-execution-contract.md)
+
+**Technique:** Boundary-value and equivalence-partition testing
+
 ## Objective
 
 Verify the customer, product PLU, and price-type association and the initial

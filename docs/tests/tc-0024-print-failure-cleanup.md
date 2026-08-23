@@ -6,6 +6,14 @@
 
 **Level:** Application-component test
 
+**Priority:** Required release gate
+
+**Implementation:** `tests/Werm.Tests/Program.cs`
+
+**Execution contract:** [Automated controlled-test execution contract](automated-test-execution-contract.md)
+
+**Technique:** Controlled fault injection
+
 ## Objective
 
 Simulate a document print failure after successful field population.

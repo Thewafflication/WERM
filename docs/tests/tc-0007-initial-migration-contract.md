@@ -3,9 +3,17 @@
 **Status:** Controlled
 
 **Requirements:** `REQ-0002`, `REQ-0007`, `REQ-0008`, `REQ-0009`, `REQ-0010`,
-`REQ-0011`
+`REQ-0011`, `REQ-0015`
 
 **Level:** Component test
+
+**Priority:** Required release gate
+
+**Implementation:** `tests/Werm.Tests/Program.cs`
+
+**Execution contract:** [Automated controlled-test execution contract](automated-test-execution-contract.md)
+
+**Technique:** Requirements-based schema inspection
 
 ## Objective
 

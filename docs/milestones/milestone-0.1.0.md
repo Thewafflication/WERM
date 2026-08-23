@@ -246,16 +246,16 @@ milestone closeout.
 
 | Criterion | Required evidence | Gate | Status |
 | --- | --- | --- | --- |
-| WSP adoption and milestone baselines are accepted | Adoption and review record | Required | Planned |
-| Every included requirement is accepted and traced | Requirements and traceability report | Required | Planned |
-| A clean environment builds and installs the release candidate | Build and installation evidence | Required | Planned |
-| Authorized maintenance and audit behavior pass | Test report | Required | Planned |
-| Representative Word fields contain expected data | Mapping and system-test evidence | Required | Planned |
-| A representative physical label is correct | Print-test record and inspected sample | Required | Planned |
-| Failure recovery and Word cleanup pass | Failure-path tests | Required | Planned |
-| Required release-matrix entries pass | Test report and evidence inventory | Required | Planned |
-| Documentation and release-readiness review pass | Review and readiness records | Required | Planned |
-| Barcode behavior is absent from release claims | Scope inspection | Informative | Planned |
+| WSP adoption and milestone baselines are accepted | Adoption and review record | Required | Fail — adoption remains Proposed |
+| Every included requirement is accepted and traced | Requirements and traceability report | Required | Pass — 21 requirements, 28 specifications, 52 result records |
+| A clean environment builds and installs the release candidate | Build and installation evidence | Required | Fail — build passes; `TC-0028` is Blocked |
+| Authorized maintenance and audit behavior pass | Test report | Required | Fail — automated boundary passes; `TC-0026` is Blocked |
+| Representative Word fields contain expected data | Mapping and system-test evidence | Required | Fail — mapping passes; physical Word system test is Blocked |
+| A representative physical label is correct | Print-test record and inspected sample | Required | Fail — `TC-0027` is Blocked |
+| Failure recovery and Word cleanup pass | Failure-path tests | Required | Fail — component test passes; physical cleanup remains Blocked |
+| Required release-matrix entries pass | Test report and evidence inventory | Required | Fail — 48 automated Pass, four manual Blocked |
+| Documentation and release-readiness review pass | Review and readiness records | Required | Fail — readiness decision is Reject pending required reviews |
+| Barcode behavior is absent from release claims | Scope inspection | Informative | Pass |
 
 Every required gate must pass before milestone closeout.
 
@@ -302,6 +302,7 @@ replanning; they require correction or a revised release claim.
 - [Database installation](../database-installation.md)
 - [Word template contract](../word-template-contract.md)
 - [Workstation configuration](../workstation-configuration.md)
+- [0.1.0 release readiness](../releases/0.1.0-readiness.md)
 - [WSP milestone work-plan template](../../wsp/processes/milestone-plan-template.md)
 - [WSP test strategy](../../wsp/testing/test-strategy.md)
 - [WSP release-readiness template](../../wsp/processes/release-readiness-template.md)

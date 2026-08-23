@@ -24,7 +24,7 @@ The populated Word document is the rendered label that will be printed.
 
 **Method:** Test
 
-**References:** `TC-0020`, `TC-0021`, `TC-0022`
+**References:** `TC-0020`, `TC-0021`, `TC-0022`, `TC-0027`
 
 Populate a representative template from a record containing known values.
 Verification passes when every mapped field contains its expected value before

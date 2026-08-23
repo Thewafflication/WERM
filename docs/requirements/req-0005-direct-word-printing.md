@@ -23,7 +23,7 @@ The stakeholder selected a Word-only workflow for version 0.1.0.
 
 **Method:** Test
 
-**References:** `TC-0021`, `TC-0023`, `TC-0024`; physical print test pending
+**References:** `TC-0021`, `TC-0023`, `TC-0024`, `TC-0027`
 
 Print a populated representative template to the test label printer and
 inspect the generated working files. Verification passes when the printer

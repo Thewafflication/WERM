@@ -22,7 +22,7 @@ The stakeholder selected SQLite for the initial label-printing application.
 
 **Method:** Inspection
 
-**References:** `TC-0007`, `TC-0012`; approved-driver integration test pending
+**References:** `TC-0007`, `TC-0012`, `TC-0025`
 
 Inspect the implemented data-access configuration and dependency baseline.
 Verification passes when the application reads label data through a SQLite

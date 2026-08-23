@@ -26,7 +26,7 @@ product without directly editing the SQLite file.
 
 **Method:** Test
 
-**References:** `TC-0015`, `TC-0016`; GUI workflow test pending
+**References:** `TC-0016`, `TC-0026`
 
 Create, modify, and deactivate representative customer-product prices through
 the GUI. Verification passes when each committed operation produces the

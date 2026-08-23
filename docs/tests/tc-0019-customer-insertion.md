@@ -6,6 +6,14 @@
 
 **Level:** Data-component test
 
+**Priority:** Required release gate
+
+**Implementation:** `tests/Werm.Tests/Program.cs`
+
+**Execution contract:** [Automated controlled-test execution contract](automated-test-execution-contract.md)
+
+**Technique:** Transaction scenario and command-sequence testing
+
 ## Objective
 
 Insert a new customer through the ODBC data store and obtain its SQLite row ID.

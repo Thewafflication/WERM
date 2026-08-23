@@ -2,9 +2,17 @@
 
 **Status:** Controlled
 
-**Requirement:** `REQ-0019`
+**Requirements:** `REQ-0002`, `REQ-0019`
 
 **Level:** Component test
+
+**Priority:** Required release gate
+
+**Implementation:** `tests/Werm.Tests/Program.cs`
+
+**Execution contract:** [Automated controlled-test execution contract](automated-test-execution-contract.md)
+
+**Technique:** Decision-table connection configuration
 
 ## Objective
 

@@ -19,8 +19,11 @@ evidence, and source identity for 30 days. The same jobs will build Release and
 produce unsigned, architecture-specific WPM packages.
 
 The workflow pins third-party actions by commit and downloads a pinned WPM
-archive whose SHA-256 digest is verified before use. Release signing and GitHub
-release publication will be added before the 0.1.0 release candidate.
+archive whose SHA-256 digest is verified before use. It aggregates both
+architecture artifacts, validates requirement/test/result traceability, and
+generates a cross-architecture candidate report. Release signing and GitHub
+release publication remain required before any artifact is approved as the
+0.1.0 product release.
 
 Tests requiring Word, a physical printer, or a locally installed SQLite ODBC
 driver are not replaced by runner-only tests. They will have controlled

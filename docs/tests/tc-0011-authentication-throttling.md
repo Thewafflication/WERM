@@ -6,6 +6,14 @@
 
 **Level:** Security unit test
 
+**Priority:** Required release gate
+
+**Implementation:** `tests/Werm.Tests/Program.cs`
+
+**Execution contract:** [Automated controlled-test execution contract](automated-test-execution-contract.md)
+
+**Technique:** State-transition and boundary-value testing
+
 ## Objective
 
 Verify the temporary online-guessing control at the application boundary.

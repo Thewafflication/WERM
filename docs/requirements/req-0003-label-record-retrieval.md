@@ -25,7 +25,7 @@ print a label.
 
 **Method:** Test
 
-**References:** `TC-0020`, `TC-0023`
+**References:** `TC-0020`, `TC-0023`, `TC-0027`
 
 For a database containing a known record, request its label and compare every
 retrieved mapped value with the expected database value.

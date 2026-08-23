@@ -6,6 +6,14 @@
 
 **Level:** Application-service test
 
+**Priority:** Required release gate
+
+**Implementation:** `tests/Werm.Tests/Program.cs`
+
+**Execution contract:** [Automated controlled-test execution contract](automated-test-execution-contract.md)
+
+**Technique:** State-transition testing
+
 ## Objective
 
 Verify that only a correct password creates a maintenance session and that the

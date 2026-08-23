@@ -73,7 +73,8 @@ Copy-Item -LiteralPath (Join-Path $repositoryRoot 'docs\word-template-contract.m
     -Destination (Join-Path $payload 'docs')
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'docs\workstation-configuration.md') `
     -Destination (Join-Path $payload 'docs')
-Copy-Item -LiteralPath (Join-Path $repositoryRoot 'README.md') -Destination $payload
+Copy-Item -LiteralPath (Join-Path $repositoryRoot 'docs\package-readme.md') `
+    -Destination (Join-Path $payload 'README.md')
 
 $sourceRevision = $env:GITHUB_SHA
 if ([string]::IsNullOrWhiteSpace($sourceRevision)) {
@@ -154,6 +155,7 @@ try {
         'payload/tools/install-werm-database.wsh',
         'payload/docs/word-template-contract.md',
         'payload/docs/workstation-configuration.md',
+        'payload/README.md',
         '.wpm/package.txt',
         '.wpm/install.cmd',
         '.wpm/remove.cmd',

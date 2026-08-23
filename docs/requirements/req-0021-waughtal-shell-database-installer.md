@@ -26,7 +26,7 @@ orchestration.
 
 **Method:** Test and inspection
 
-**References:** To be assigned
+**References:** `TC-0025`, `TC-0028`
 
 Inspect the installer against the accepted Waughtal Shell language and execute
 it with the supported WSH, PowerShell, and SQLite ODBC configuration.

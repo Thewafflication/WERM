@@ -25,7 +25,7 @@ want marked.
 
 **Method:** Test
 
-**References:** `TC-0016`, `TC-0019`; GUI workflow test pending
+**References:** `TC-0016`, `TC-0019`, `TC-0026`
 
 Create, modify, and deactivate representative customers through the GUI.
 Verification passes when each committed operation produces the expected

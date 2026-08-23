@@ -6,6 +6,14 @@
 
 **Level:** Unit test
 
+**Priority:** Required release gate
+
+**Implementation:** `tests/Werm.Tests/Program.cs`
+
+**Execution contract:** [Automated controlled-test execution contract](automated-test-execution-contract.md)
+
+**Technique:** Decision-table state coverage
+
 ## Objective
 
 Verify that the domain model preserves representative multi-line ingredients

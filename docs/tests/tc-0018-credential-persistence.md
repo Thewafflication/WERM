@@ -6,6 +6,14 @@
 
 **Level:** Data-component test
 
+**Priority:** Required release gate
+
+**Implementation:** `tests/Werm.Tests/Program.cs`
+
+**Execution contract:** [Automated controlled-test execution contract](automated-test-execution-contract.md)
+
+**Technique:** Data-mapping equivalence partition
+
 ## Objective
 
 Verify the ODBC repository mapping for password-verifier metadata.

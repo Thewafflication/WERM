@@ -25,8 +25,8 @@ The stakeholder selected ODBC as the database-access interface.
 
 **Method:** Test and inspection
 
-**References:** `TC-0008`, `TC-0012`, `TC-0013`–`TC-0015`, `TC-0018`, `TC-0019`;
-approved-driver integration tests pending
+**References:** `TC-0008`, `TC-0012`, `TC-0013`, `TC-0014`, `TC-0015`,
+`TC-0018`, `TC-0019`, `TC-0025`
 
 Inspect the application dependency and data-access boundaries, then execute the
 database integration tests with the baselined SQLite ODBC driver. Verification
