@@ -1,7 +1,7 @@
 {
-  "release": "0.1.0-rc.1",
-  "implementationSourceRevision": "6f71c748df4f73ff4d80a63d9aaabed61f667bab",
-  "recordedAtUtc": "2026-08-23T02:13:00Z",
+  "release": "0.1.0-rc.2",
+  "implementationSourceRevision": "1fbc3eccc7b725a1ea501084649d338213cbe6a8",
+  "recordedAtUtc": "2026-08-23T02:35:00Z",
   "environment": "Development workstation prerequisite inspection",
   "results": [
     {
