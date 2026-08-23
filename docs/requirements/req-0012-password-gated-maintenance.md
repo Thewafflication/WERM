@@ -26,7 +26,7 @@ maintenance.
 
 **Method:** Test
 
-**References:** `TC-0009`, `TC-0010`, `TC-0011`
+**References:** `TC-0009`, `TC-0010`, `TC-0011`, `TC-0016`, `TC-0018`
 
 Attempt each protected operation before authentication, with an incorrect
 password, and with the correct password. Verification passes when only the

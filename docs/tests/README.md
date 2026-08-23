@@ -13,6 +13,14 @@
 | [TC-0009](tc-0009-maintenance-password-verifier.md) | `REQ-0012` | Verify salted password hashing and policy limits |
 | [TC-0010](tc-0010-maintenance-session.md) | `REQ-0012` | Verify password-gated and expiring write authorization |
 | [TC-0011](tc-0011-authentication-throttling.md) | `REQ-0012` | Verify temporary lockout after repeated failures |
+| [TC-0012](tc-0012-odbc-connection-contract.md) | `REQ-0019` | Verify driver/DSN strings and absence of embedded credentials |
+| [TC-0013](tc-0013-atomic-product-audit.md) | `REQ-0013`, `REQ-0014` | Verify one transaction contains product state and audit inserts |
+| [TC-0014](tc-0014-audit-failure-rollback.md) | `REQ-0013` | Verify an audit failure rolls back the product write |
+| [TC-0015](tc-0015-price-audit-lineage.md) | `REQ-0011`, `REQ-0013`, `REQ-0014` | Verify customer-price differences and parent revision lineage |
+| [TC-0016](tc-0016-write-authorization-boundary.md) | `REQ-0012`, `REQ-0016`–`REQ-0018` | Verify application writes require a valid maintenance session |
+| [TC-0017](tc-0017-append-only-audit-schema.md) | `REQ-0015` | Verify database triggers protect existing audit rows |
+| [TC-0018](tc-0018-credential-persistence.md) | `REQ-0012`, `REQ-0019` | Verify Base64 verifier mapping through parameterized ADO.NET commands |
+| [TC-0019](tc-0019-customer-insertion.md) | `REQ-0017`, `REQ-0019` | Verify parameterized customer insertion without deletion |
 
 The executable runner writes architecture, runtime, source revision, timestamp,
 verdict, and diagnostics to XML. GitHub Actions retains the Debug executable,

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Odbc;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -9,7 +11,10 @@ using System.Xml;
 using Werm.Core;
 using Werm.Core.Database;
 using Werm.Core.Domain;
+using Werm.Core.Persistence;
 using Werm.Core.Security;
+using Werm.Data;
+using Werm.Data.Connection;
 
 namespace Werm.Tests
 {
@@ -112,7 +117,47 @@ namespace Werm.Tests
                     "TC-0011",
                     "REQ-0012",
                     "Failed authentication throttling",
-                    VerifyAuthenticationThrottling)
+                    VerifyAuthenticationThrottling),
+                new ControlledTest(
+                    "TC-0012",
+                    "REQ-0019",
+                    "ODBC connection-string contract",
+                    () => VerifyOdbcConnectionOptions(repositoryRoot)),
+                new ControlledTest(
+                    "TC-0013",
+                    "REQ-0013,REQ-0014",
+                    "Atomic product creation and audit",
+                    VerifyAtomicProductAudit),
+                new ControlledTest(
+                    "TC-0014",
+                    "REQ-0013",
+                    "Audit failure rolls back product change",
+                    VerifyAuditFailureRollback),
+                new ControlledTest(
+                    "TC-0015",
+                    "REQ-0011,REQ-0013,REQ-0014",
+                    "Customer-price audit lineage",
+                    VerifyPriceAuditLineage),
+                new ControlledTest(
+                    "TC-0016",
+                    "REQ-0012,REQ-0016,REQ-0017,REQ-0018",
+                    "Application write authorization boundary",
+                    VerifyMaintenanceServiceAuthorization),
+                new ControlledTest(
+                    "TC-0017",
+                    "REQ-0015",
+                    "Append-only audit schema protection",
+                    () => VerifyAppendOnlyAuditSchema(repositoryRoot)),
+                new ControlledTest(
+                    "TC-0018",
+                    "REQ-0012,REQ-0019",
+                    "ODBC credential persistence mapping",
+                    VerifyCredentialPersistence),
+                new ControlledTest(
+                    "TC-0019",
+                    "REQ-0017,REQ-0019",
+                    "ODBC customer insertion",
+                    VerifyCustomerInsertion)
             };
 
             var results = new List<TestResult>();
@@ -252,10 +297,10 @@ namespace Werm.Tests
                 "migrations",
                 InitialSchemaContract.MigrationName);
             SqlMigration migration = SqlMigrationParser.Read(migrationPath);
-            if (migration.Batches.Count != 11)
+            if (migration.Batches.Count != 15)
             {
                 throw new InvalidOperationException(
-                    "Expected 11 controlled migration batches but found " + migration.Batches.Count + ".");
+                    "Expected 15 controlled migration batches but found " + migration.Batches.Count + ".");
             }
 
             foreach (string tableName in InitialSchemaContract.ExpectedTableNames)
@@ -264,6 +309,17 @@ namespace Werm.Tests
                 if (!Regex.IsMatch(migration.Sql, pattern))
                 {
                     throw new InvalidOperationException("Missing required table definition: " + tableName);
+                }
+            }
+
+            foreach (string triggerName in InitialSchemaContract.ExpectedTriggerNames)
+            {
+                string pattern = @"(?im)^\s*CREATE\s+TRIGGER\s+" +
+                    Regex.Escape(triggerName) + @"\s*$";
+                if (!Regex.IsMatch(migration.Sql, pattern))
+                {
+                    throw new InvalidOperationException(
+                        "Missing required append-only trigger: " + triggerName);
                 }
             }
 
@@ -424,6 +480,304 @@ namespace Werm.Tests
                 "a sufficiently long password", "operator", out session), "post-lockout authentication");
         }
 
+        private static void VerifyOdbcConnectionOptions(string repositoryRoot)
+        {
+            string databasePath = Path.Combine(repositoryRoot, "out", "test-data", "werm.db");
+            OdbcConnectionOptions driverOptions = OdbcConnectionOptions.ForDriver(
+                databasePath, "SQLite Controlled Driver");
+            var driverBuilder = new OdbcConnectionStringBuilder(
+                driverOptions.BuildConnectionString());
+            Equal("{SQLite Controlled Driver}", driverBuilder.Driver, "ODBC driver name");
+            Equal(Path.GetFullPath(databasePath),
+                Convert.ToString(driverBuilder["Database"]), "ODBC database path");
+
+            OdbcConnectionOptions dsnOptions = OdbcConnectionOptions.ForDsn(databasePath, "WERM");
+            var dsnBuilder = new OdbcConnectionStringBuilder(dsnOptions.BuildConnectionString());
+            Equal("WERM", dsnBuilder.Dsn, "ODBC DSN");
+            Equal(false, dsnBuilder.ContainsKey("Password"), "embedded password absence");
+            Equal(false, dsnBuilder.ContainsKey("Pwd"), "embedded Pwd absence");
+        }
+
+        private static void VerifyAtomicProductAudit()
+        {
+            var connection = new RecordingDbConnection();
+            connection.ReaderHandler = command => new DataTable();
+            connection.ScalarHandler = command => 101L;
+            OdbcWermDataStore store = CreateDataStore(connection);
+            var product = new Product("0042", "Ground Beef", "BEEF, SALT", true, true);
+
+            Equal(true, store.SaveProduct(product, "operator", "initial entry"),
+                "product save result");
+            Equal(1, connection.LastTransaction.CommitCount, "transaction commits");
+            Equal(0, connection.LastTransaction.RollbackCount, "transaction rollbacks");
+            Equal(1, CountCommands(connection, "INSERT INTO Product "), "product inserts");
+            Equal(1, CountCommands(connection, "INSERT INTO ProductAuditEvent"),
+                "audit event inserts");
+            Equal(5, CountCommands(connection, "INSERT INTO ProductAuditChange"),
+                "audit field inserts");
+
+            foreach (RecordingDbCommand command in connection.Commands)
+            {
+                if (command.Parameters.Count > 0)
+                {
+                    Equal(command.Parameters.Count, CountCharacter(command.CommandText, '?'),
+                        "positional parameter count");
+                }
+                if (command.CommandText.StartsWith("INSERT", StringComparison.Ordinal))
+                {
+                    Equal(connection.LastTransaction, command.Transaction,
+                        "write transaction identity");
+                }
+            }
+        }
+
+        private static void VerifyAuditFailureRollback()
+        {
+            var connection = new RecordingDbConnection();
+            connection.ReaderHandler = command => new DataTable();
+            connection.ScalarHandler = command => 102L;
+            connection.NonQueryHandler = command =>
+            {
+                if (command.CommandText.StartsWith(
+                    "INSERT INTO ProductAuditChange", StringComparison.Ordinal))
+                {
+                    throw new DataException("controlled audit failure");
+                }
+                return 1;
+            };
+            OdbcWermDataStore store = CreateDataStore(connection);
+
+            ExpectException<DataException>(() => store.SaveProduct(
+                new Product("0043", "Roast", null, false, true),
+                "operator",
+                "controlled failure"));
+            Equal(0, connection.LastTransaction.CommitCount, "failed transaction commits");
+            Equal(1, connection.LastTransaction.RollbackCount, "failed transaction rollbacks");
+        }
+
+        private static void VerifyPriceAuditLineage()
+        {
+            var connection = new RecordingDbConnection();
+            connection.ReaderHandler = command =>
+            {
+                if (command.CommandText.Contains("FROM CustomerProductPrice"))
+                {
+                    return TableWithRow(
+                        new[]
+                        {
+                            "CustomerId", "ProductPLU", "PriceType", "AmountMinorUnits",
+                            "CurrencyCode", "PriceBasis", "IsActive"
+                        },
+                        new[]
+                        {
+                            typeof(long), typeof(string), typeof(string), typeof(long),
+                            typeof(string), typeof(string), typeof(long)
+                        },
+                        17L, "0042", "Retail", 1099L, "USD", "per package", 1L);
+                }
+                if (command.CommandText.Contains("FROM ProductAuditEvent"))
+                {
+                    return TableWithRow(
+                        new[] { "AuditEventId", "RevisionNumber" },
+                        new[] { typeof(long), typeof(int) },
+                        10L, 3);
+                }
+                return new DataTable();
+            };
+            connection.ScalarHandler = command => 11L;
+            OdbcWermDataStore store = CreateDataStore(connection);
+            var price = new CustomerProductPrice(
+                17, "0042", "Retail", 1299, "USD", "per package", false);
+
+            Equal(true, store.SaveCustomerProductPrice(
+                price, "operator", "customer price change"), "price save result");
+            Equal(1, CountCommands(connection, "UPDATE CustomerProductPrice"), "price updates");
+            Equal(2, CountCommands(connection, "INSERT INTO ProductAuditChange"),
+                "price field changes");
+            RecordingDbCommand eventCommand = FindSingleCommand(
+                connection, "INSERT INTO ProductAuditEvent");
+            Equal(10L, Convert.ToInt64(ParameterValue(eventCommand, 1)), "parent audit event");
+            Equal(4L, Convert.ToInt64(ParameterValue(eventCommand, 2)), "audit revision");
+            Equal("Deactivate", Convert.ToString(ParameterValue(eventCommand, 3)),
+                "audit change type");
+            Equal(1, connection.LastTransaction.CommitCount, "price transaction commits");
+            Equal(0, connection.LastTransaction.RollbackCount, "price transaction rollbacks");
+        }
+
+        private static void VerifyMaintenanceServiceAuthorization()
+        {
+            var credentialStore = new InMemoryCredentialStore();
+            var hasher = new DeterministicPasswordHasher("a sufficiently long password");
+            var clock = new AdjustableClock(
+                new DateTimeOffset(2026, 8, 22, 20, 0, 0, TimeSpan.Zero));
+            var authorizer = new MaintenanceAuthorizer(credentialStore, hasher, clock);
+            authorizer.InitializePassword("a sufficiently long password");
+            var dataStore = new RecordingWermDataStore();
+            var service = new MaintenanceService(dataStore, authorizer);
+            var product = new Product("0042", "Ground Beef", null, false, true);
+
+            ExpectException<MaintenanceAuthorizationException>(() =>
+                service.SaveProduct(null, product, "unauthorized"));
+            Equal(0, dataStore.ProductSaveCount, "unauthorized store writes");
+
+            MaintenanceSession session;
+            Equal(true, authorizer.TryAuthenticate(
+                "a sufficiently long password", "operator", out session),
+                "maintenance authentication");
+            Equal(true, service.SaveProduct(session, product, "authorized"),
+                "authorized product write");
+            Equal(1, dataStore.ProductSaveCount, "authorized store writes");
+            Equal("operator", dataStore.LastChangedBy, "audited operator");
+        }
+
+        private static void VerifyAppendOnlyAuditSchema(string repositoryRoot)
+        {
+            SqlMigration migration = SqlMigrationParser.Read(Path.Combine(
+                repositoryRoot,
+                "database",
+                "migrations",
+                InitialSchemaContract.MigrationName));
+            foreach (string tableName in new[] { "ProductAuditEvent", "ProductAuditChange" })
+            {
+                foreach (string operation in new[] { "UPDATE", "DELETE" })
+                {
+                    string pattern = @"(?is)CREATE\s+TRIGGER\s+TR_" + tableName +
+                        @"_Reject" + operation.Substring(0, 1) + operation.Substring(1).ToLowerInvariant() +
+                        @"\s+BEFORE\s+" + operation + @"\s+ON\s+" + tableName +
+                        @".*?RAISE\s*\(\s*ABORT";
+                    if (!Regex.IsMatch(migration.Sql, pattern))
+                    {
+                        throw new InvalidOperationException(
+                            "Missing append-only " + operation + " protection for " + tableName + ".");
+                    }
+                }
+            }
+        }
+
+        private static void VerifyCredentialPersistence()
+        {
+            var writeConnection = new RecordingDbConnection();
+            var clock = new AdjustableClock(
+                new DateTimeOffset(2026, 8, 22, 20, 0, 0, TimeSpan.Zero));
+            var writeStore = new OdbcMaintenanceCredentialStore(
+                new RecordingDbConnectionFactory(writeConnection), clock);
+            var credential = new PasswordCredential(
+                "PBKDF2-HMAC-SHA512", 220000, new byte[] { 1, 2, 3 }, new byte[] { 4, 5, 6 });
+            writeStore.Create(credential);
+            RecordingDbCommand insert = FindSingleCommand(
+                writeConnection, "INSERT INTO MaintenanceCredential");
+            Equal("PBKDF2-HMAC-SHA512", Convert.ToString(ParameterValue(insert, 1)),
+                "stored credential algorithm");
+            Equal("AQID", Convert.ToString(ParameterValue(insert, 3)), "stored Base64 salt");
+            Equal("BAUG", Convert.ToString(ParameterValue(insert, 4)), "stored Base64 hash");
+
+            var readConnection = new RecordingDbConnection();
+            readConnection.ReaderHandler = command => TableWithRow(
+                new[] { "Algorithm", "IterationCount", "SaltBase64", "HashBase64" },
+                new[] { typeof(string), typeof(int), typeof(string), typeof(string) },
+                "PBKDF2-HMAC-SHA512", 220000, "AQID", "BAUG");
+            var readStore = new OdbcMaintenanceCredentialStore(
+                new RecordingDbConnectionFactory(readConnection), clock);
+            PasswordCredential loaded = readStore.Get();
+            Equal(credential.Algorithm, loaded.Algorithm, "loaded credential algorithm");
+            Equal(credential.IterationCount, loaded.IterationCount, "loaded credential iterations");
+            Equal(true, ByteArraysEqual(credential.GetSalt(), loaded.GetSalt()),
+                "loaded credential salt");
+            Equal(true, ByteArraysEqual(credential.GetHash(), loaded.GetHash()),
+                "loaded credential hash");
+        }
+
+        private static void VerifyCustomerInsertion()
+        {
+            var connection = new RecordingDbConnection();
+            connection.ScalarHandler = command => 25L;
+            OdbcWermDataStore store = CreateDataStore(connection);
+            long customerId = store.SaveCustomer(
+                new Customer(0, "STORE-25", "Market Street", true));
+
+            Equal(25L, customerId, "new customer identity");
+            Equal(1, CountCommands(connection, "INSERT INTO Customer "), "customer inserts");
+            Equal(0, CountCommands(connection, "DELETE FROM Customer"), "customer deletes");
+            Equal(1, connection.LastTransaction.CommitCount, "customer transaction commits");
+        }
+
+        private static OdbcWermDataStore CreateDataStore(RecordingDbConnection connection)
+        {
+            return new OdbcWermDataStore(
+                new RecordingDbConnectionFactory(connection),
+                new AdjustableClock(new DateTimeOffset(
+                    2026, 8, 22, 20, 0, 0, TimeSpan.Zero)));
+        }
+
+        private static int CountCommands(RecordingDbConnection connection, string prefix)
+        {
+            int count = 0;
+            foreach (RecordingDbCommand command in connection.Commands)
+            {
+                if (command.CommandText.StartsWith(prefix, StringComparison.Ordinal))
+                {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        private static RecordingDbCommand FindSingleCommand(
+            RecordingDbConnection connection,
+            string prefix)
+        {
+            RecordingDbCommand match = null;
+            foreach (RecordingDbCommand command in connection.Commands)
+            {
+                if (!command.CommandText.StartsWith(prefix, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+                if (match != null)
+                {
+                    throw new InvalidOperationException("More than one matching command: " + prefix);
+                }
+                match = command;
+            }
+            if (match == null)
+            {
+                throw new InvalidOperationException("No matching command: " + prefix);
+            }
+            return match;
+        }
+
+        private static object ParameterValue(RecordingDbCommand command, int index)
+        {
+            return ((IDataParameter)command.Parameters[index]).Value;
+        }
+
+        private static int CountCharacter(string value, char character)
+        {
+            int count = 0;
+            foreach (char candidate in value)
+            {
+                if (candidate == character)
+                {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        private static DataTable TableWithRow(
+            string[] columnNames,
+            Type[] columnTypes,
+            params object[] values)
+        {
+            var table = new DataTable();
+            for (int index = 0; index < columnNames.Length; index++)
+            {
+                table.Columns.Add(columnNames[index], columnTypes[index]);
+            }
+            table.Rows.Add(values);
+            return table;
+        }
+
         private static bool ByteArraysEqual(byte[] left, byte[] right)
         {
             if (left.Length != right.Length)
@@ -502,6 +856,55 @@ namespace Werm.Tests
             public void Advance(TimeSpan duration)
             {
                 UtcNow = UtcNow.Add(duration);
+            }
+        }
+
+        private sealed class RecordingWermDataStore : IWermDataStore
+        {
+            public int ProductSaveCount { get; private set; }
+            public string LastChangedBy { get; private set; }
+
+            public Product GetProduct(string plu)
+            {
+                return null;
+            }
+
+            public Customer GetCustomer(long customerId)
+            {
+                return null;
+            }
+
+            public CustomerProductPrice GetCustomerProductPrice(
+                long customerId,
+                string productPlu,
+                string priceType)
+            {
+                return null;
+            }
+
+            public IReadOnlyList<ProductAuditEvent> GetProductAuditHistory(string plu)
+            {
+                return new List<ProductAuditEvent>().AsReadOnly();
+            }
+
+            public bool SaveProduct(Product product, string changedBy, string changeReason)
+            {
+                ProductSaveCount++;
+                LastChangedBy = changedBy;
+                return true;
+            }
+
+            public long SaveCustomer(Customer customer)
+            {
+                return customer.CustomerId;
+            }
+
+            public bool SaveCustomerProductPrice(
+                CustomerProductPrice price,
+                string changedBy,
+                string changeReason)
+            {
+                return true;
             }
         }
 

@@ -25,7 +25,7 @@ Restoring product values is represented by a new event instead.
 
 **Method:** Test and inspection
 
-**References:** To be assigned
+**References:** `TC-0007`, `TC-0017`
 
 Inspect the GUI and application data-access operations, then restore an earlier
 product state. Verification passes when no audit update or delete operation is
@@ -43,5 +43,6 @@ None.
 
 ## Implementation Record
 
-Not yet implemented. Database-level protection against direct audit updates or
-deletes remains an open design item.
+The data store exposes append and read operations but no audit update or delete
+operation. Four SQLite triggers reject updates and deletes against existing
+events and field changes. GUI inspection and restore workflow remain pending.

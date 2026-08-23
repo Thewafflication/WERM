@@ -25,7 +25,7 @@ reviewer to determine who changed what and when.
 
 **Method:** Test and inspection
 
-**References:** To be assigned
+**References:** `TC-0013`, `TC-0015`
 
 Inspect the schema and representative events for every supported change type.
 Verification passes when the required attributes are present and match the
@@ -43,5 +43,5 @@ None.
 
 ## Implementation Record
 
-The proposed design groups event metadata in `ProductAuditEvent` and field
-differences in `ProductAuditChange`.
+The implemented data store records parent lineage, sequential revision,
+change type, UTC timestamp, operator, reason, and ordered old/new field values.

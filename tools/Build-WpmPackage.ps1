@@ -144,6 +144,7 @@ try {
 
     foreach ($requiredEntry in @(
         'payload/Werm.exe',
+        'payload/Werm.Data.dll',
         'payload/database/migrations/0001-initial-schema.sql',
         'payload/tools/install-werm-database.wsh',
         '.wpm/package.txt',

@@ -112,8 +112,10 @@ jobs:
           retention-days: 30
           path: |
             out/bin/Werm.App/${{ matrix.architecture }}/Debug/Werm.exe
+            out/bin/Werm.App/${{ matrix.architecture }}/Debug/*.dll
             out/bin/Werm.App/${{ matrix.architecture }}/Debug/*.pdb
             out/bin/Werm.Core/${{ matrix.architecture }}/Debug/*
+            out/bin/Werm.Data/${{ matrix.architecture }}/Debug/*
             out/bin/Werm.Tests/${{ matrix.architecture }}/Debug/*
             out/test-results/${{ matrix.architecture }}/Debug/werm-test-results.xml
             out/packages/werm-${{ matrix.architecture }}-0.1.0-ci.${{ github.run_number }}.zip

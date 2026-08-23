@@ -142,6 +142,38 @@ CREATE TABLE ProductAuditChange
 
 -- WERM-BATCH
 
+CREATE TRIGGER TR_ProductAuditEvent_RejectUpdate
+BEFORE UPDATE ON ProductAuditEvent
+BEGIN
+    SELECT RAISE(ABORT, 'ProductAuditEvent is append-only');
+END;
+
+-- WERM-BATCH
+
+CREATE TRIGGER TR_ProductAuditEvent_RejectDelete
+BEFORE DELETE ON ProductAuditEvent
+BEGIN
+    SELECT RAISE(ABORT, 'ProductAuditEvent is append-only');
+END;
+
+-- WERM-BATCH
+
+CREATE TRIGGER TR_ProductAuditChange_RejectUpdate
+BEFORE UPDATE ON ProductAuditChange
+BEGIN
+    SELECT RAISE(ABORT, 'ProductAuditChange is append-only');
+END;
+
+-- WERM-BATCH
+
+CREATE TRIGGER TR_ProductAuditChange_RejectDelete
+BEFORE DELETE ON ProductAuditChange
+BEGIN
+    SELECT RAISE(ABORT, 'ProductAuditChange is append-only');
+END;
+
+-- WERM-BATCH
+
 INSERT INTO WermSchemaVersion (Version, Migration, AppliedAtUtc)
 VALUES (1, '0001-initial-schema.sql', CURRENT_TIMESTAMP);
 

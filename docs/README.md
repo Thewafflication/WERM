@@ -24,6 +24,7 @@ Version 0.1.0 does not store, generate, populate, or print barcodes.
 - [ADR-0008: Use WPF with x86 and x64 packages](adr-0008-use-wpf-and-x86-x64-packages.md)
 - [ADR-0009: Use WPM and GitHub Actions for delivery](adr-0009-use-wpm-and-github-actions.md)
 - [ADR-0010: Hash the maintenance password and gate write sessions](adr-0010-hash-maintenance-password.md)
+- [ADR-0011: Use ODBC repositories with atomic audit transactions](adr-0011-use-odbc-repository-transactions.md)
 
 ## Design
 

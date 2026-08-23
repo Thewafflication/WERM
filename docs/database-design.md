@@ -2,7 +2,7 @@
 
 **Content type:** Project design
 
-**Status:** Proposed
+**Status:** In progress
 
 ## Purpose and Scope
 
@@ -188,8 +188,10 @@ CREATE TABLE ProductAuditChange
 );
 ```
 
-`EntityKey` is a stable serialized identity, not a display label. Its exact
-encoding will be specified before the schema is accepted.
+`EntityKey` is a stable serialized identity, not a display label. Product
+changes use the PLU. Customer-price changes use
+`<customer-id>:<base64-utf8-plu>:<base64-utf8-price-type>` so delimiters in
+business values cannot make the composite key ambiguous.
 
 ## Transactions and Preservation
 
@@ -202,6 +204,11 @@ than deleting them. The GUI will not expose operations that update or delete
 existing audit records. Direct access to the SQLite file remains outside this
 application boundary and must be controlled through operating-system file
 permissions, backups, and administrative procedure.
+
+Four `BEFORE UPDATE`/`BEFORE DELETE` SQLite triggers abort attempts to mutate
+`ProductAuditEvent` or `ProductAuditChange`. WERM exposes only append and read
+operations for those tables. The triggers strengthen the application boundary
+but do not protect against an administrator who can alter the database schema.
 
 ## ODBC Access Contract
 
@@ -224,6 +231,10 @@ The M1.2 compatibility spike must establish:
 - diagnostic information available for connection and SQL failures.
 
 No password or secret will be embedded in a committed connection string.
+The implemented `Werm.Data` assembly creates driver- or DSN-based ODBC
+connections, applies the per-connection pragmas, and uses positional
+parameters. Product and price state plus audit records share one transaction;
+the approved-driver round-trip evidence remains pending.
 
 The versioned migration and Waughtal Shell setup procedure are defined by the
 [database installation instructions](database-installation.md).
@@ -259,5 +270,6 @@ until a milestone after version 0.1.0.
 - [ADR-0005: Retain append-only product audit history](adr-0005-append-only-product-audit-history.md)
 - [ADR-0006: Access SQLite through ODBC](adr-0006-access-sqlite-through-odbc.md)
 - [ADR-0010: Hash the maintenance password and gate write sessions](adr-0010-hash-maintenance-password.md)
+- [ADR-0011: Use ODBC repositories with atomic audit transactions](adr-0011-use-odbc-repository-transactions.md)
 - [Database installation](database-installation.md)
 - [Product requirements](requirements/README.md)

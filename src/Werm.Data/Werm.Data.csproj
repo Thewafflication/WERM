@@ -2,31 +2,30 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
-    <ProjectGuid>{9DB6386D-246C-43B6-9289-5DA173906F52}</ProjectGuid>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>Werm.Tests</RootNamespace>
-    <AssemblyName>Werm.Tests</AssemblyName>
+    <ProjectGuid>{B06BCCF7-9E0D-4DE4-B61F-73584E163DE4}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Werm.Data</RootNamespace>
+    <AssemblyName>Werm.Data</AssemblyName>
     <Platforms>x86;x64</Platforms>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
+    <Compile Include="Connection\IWermDbConnectionFactory.cs" />
+    <Compile Include="Connection\OdbcConnectionFactory.cs" />
+    <Compile Include="Connection\OdbcConnectionOptions.cs" />
+    <Compile Include="OdbcMaintenanceCredentialStore.cs" />
+    <Compile Include="OdbcWermDataStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RecordingDb.cs" />
+    <Compile Include="SqlCommandBuilder.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Werm.Core\Werm.Core.csproj">
+    <ProjectReference Include="..\Werm.Core\Werm.Core.csproj">
       <Project>{197E6577-23F4-42B4-A95E-B31FF375E9D8}</Project>
       <Name>Werm.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\src\Werm.Data\Werm.Data.csproj">
-      <Project>{B06BCCF7-9E0D-4DE4-B61F-73584E163DE4}</Project>
-      <Name>Werm.Data</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

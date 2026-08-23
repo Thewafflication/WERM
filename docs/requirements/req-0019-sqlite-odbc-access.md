@@ -25,7 +25,8 @@ The stakeholder selected ODBC as the database-access interface.
 
 **Method:** Test and inspection
 
-**References:** To be assigned
+**References:** `TC-0008`, `TC-0012`, `TC-0013`–`TC-0015`, `TC-0018`, `TC-0019`;
+approved-driver integration tests pending
 
 Inspect the application dependency and data-access boundaries, then execute the
 database integration tests with the baselined SQLite ODBC driver. Verification
@@ -45,5 +46,8 @@ None.
 
 ## Implementation Record
 
-Not yet implemented. The exact driver and supported configuration will be
-established by the M1.2 compatibility spike.
+`Werm.Data` uses `System.Data.Odbc.OdbcConnection` for production connections,
+supports registered-driver and DSN connection strings, enables foreign keys
+and the busy timeout on every connection, and maps all SQL values through
+ordered positional parameters. The exact driver and supported configuration
+will be established by the M1.2 compatibility spike.

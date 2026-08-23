@@ -24,7 +24,7 @@ and one customer may require more than one price type.
 
 **Method:** Test
 
-**References:** `TC-0006`, `TC-0007`
+**References:** `TC-0006`, `TC-0007`, `TC-0015`
 
 Store different prices for the same PLU and different customers, then retrieve
 each association. Verification passes when every customer receives only its
@@ -46,3 +46,5 @@ None.
 The schema defines `CustomerProductPrice` with a composite primary key of
 customer, PLU, and price type. The core model validates those identity values,
 non-negative minor units, and the initial three-character currency contract.
+The ODBC data store persists price changes and appends their product audit
+lineage in one transaction.

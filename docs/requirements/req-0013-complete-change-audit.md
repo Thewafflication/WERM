@@ -24,7 +24,7 @@ The stakeholder requires a permanent history of every product-related change.
 
 **Method:** Test
 
-**References:** To be assigned
+**References:** `TC-0013`, `TC-0014`, `TC-0015`
 
 Perform each supported modification type and compare committed data operations
 with the resulting audit events. Verification passes when every committed
@@ -43,5 +43,6 @@ None.
 
 ## Implementation Record
 
-The proposed design uses `ProductAuditEvent` and `ProductAuditChange` in the
-same SQLite transaction as the data modification.
+The ODBC data store writes `ProductAuditEvent` and `ProductAuditChange` in the
+same ADO.NET transaction as each product or customer-price modification. An
+injected audit failure rolls the shared transaction back.

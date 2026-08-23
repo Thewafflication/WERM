@@ -18,5 +18,14 @@ namespace Werm.Core.Database
                 "ProductAuditEvent",
                 "ProductAuditChange"
             });
+
+        public static readonly ReadOnlyCollection<string> ExpectedTriggerNames =
+            new ReadOnlyCollection<string>(new[]
+            {
+                "TR_ProductAuditEvent_RejectUpdate",
+                "TR_ProductAuditEvent_RejectDelete",
+                "TR_ProductAuditChange_RejectUpdate",
+                "TR_ProductAuditChange_RejectDelete"
+            });
     }
 }

@@ -25,7 +25,7 @@ want marked.
 
 **Method:** Test
 
-**References:** To be assigned
+**References:** `TC-0016`, `TC-0019`; GUI workflow test pending
 
 Create, modify, and deactivate representative customers through the GUI.
 Verification passes when each committed operation produces the expected
@@ -44,4 +44,5 @@ None.
 
 ## Implementation Record
 
-Not yet implemented.
+The authorized application service and parameterized ODBC customer save are
+implemented. The WPF maintenance workflow remains pending.

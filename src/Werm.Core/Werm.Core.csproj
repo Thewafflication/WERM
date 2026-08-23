@@ -21,6 +21,11 @@
     <Compile Include="Domain\DomainText.cs" />
     <Compile Include="Domain\Product.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Persistence\AuditChangeType.cs" />
+    <Compile Include="Persistence\IWermDataStore.cs" />
+    <Compile Include="Persistence\MaintenanceService.cs" />
+    <Compile Include="Persistence\ProductAuditChange.cs" />
+    <Compile Include="Persistence\ProductAuditEvent.cs" />
     <Compile Include="Security\IMaintenanceCredentialStore.cs" />
     <Compile Include="Security\IPasswordHasher.cs" />
     <Compile Include="Security\IUtcClock.cs" />

@@ -25,7 +25,7 @@ editing the SQLite file.
 
 **Method:** Test
 
-**References:** To be assigned
+**References:** `TC-0013`, `TC-0016`; GUI workflow test pending
 
 Create, modify, and deactivate representative products through the GUI.
 Verification passes when each committed operation produces the expected
@@ -45,4 +45,5 @@ None.
 
 ## Implementation Record
 
-Not yet implemented.
+The authorized application service and atomic ODBC product save are
+implemented. The WPF maintenance workflow remains pending.

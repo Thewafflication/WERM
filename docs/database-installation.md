@@ -39,6 +39,9 @@ Schema version 1 contains:
 
 Barcode tables are deliberately absent from version 0.1.0.
 
+The migration also installs four triggers that reject update or delete
+operations against the two audit tables.
+
 ## Prerequisites
 
 1. Use a supported Windows workstation.

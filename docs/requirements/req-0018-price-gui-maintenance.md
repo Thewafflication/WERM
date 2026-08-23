@@ -26,7 +26,7 @@ product without directly editing the SQLite file.
 
 **Method:** Test
 
-**References:** To be assigned
+**References:** `TC-0015`, `TC-0016`; GUI workflow test pending
 
 Create, modify, and deactivate representative customer-product prices through
 the GUI. Verification passes when each committed operation produces the
@@ -48,4 +48,6 @@ None.
 
 ## Implementation Record
 
-Not yet implemented.
+The authorized application service and atomic ODBC customer-price save with
+product audit lineage are implemented. The WPF maintenance workflow remains
+pending.

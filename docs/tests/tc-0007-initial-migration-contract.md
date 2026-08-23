@@ -16,7 +16,8 @@ table, version, and milestone-scope structure expected by application code.
 
 1. Parse `database/migrations/0001-initial-schema.sql` with the same
    `-- WERM-BATCH` contract used by the installer.
-2. Verify the eleven non-empty batches and seven required table definitions.
+2. Verify the fifteen non-empty batches, seven required table definitions, and
+   four append-only trigger definitions.
 3. Verify `PRAGMA user_version = 1`.
 4. Inspect the SQL for deferred barcode scope.
 
