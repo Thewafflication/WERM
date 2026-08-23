@@ -9,6 +9,11 @@ the WERM version 0.1.0 SQLite schema through ODBC. It orchestrates the
 PowerShell ODBC worker and the controlled SQL migration stored in this
 repository.
 
+For interactive workstation setup, the WERM **Database configuration** tab can
+perform the same version-1 create-or-validate operation from the packaged SQL
+migration. The Waughtal Shell procedure remains the controlled scripting entry
+point and is used for `TC-0025` evidence.
+
 The installer does not download or silently select an ODBC driver. The project
 must approve and baseline the driver, architecture, version, source, license,
 and installer before release use.

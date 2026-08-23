@@ -109,6 +109,7 @@ impact review rather than an implicit scope change.
 | `REQ-0012` | Maintenance authorization boundary | Authorization tests and security review | Yes |
 | `REQ-0013` through `REQ-0015` | Audit transaction and query components | Transaction, lineage, and preservation tests | Yes |
 | `REQ-0016` through `REQ-0018` | Maintenance GUI and application services | GUI system and database-state tests | Yes |
+| `REQ-0022` | Per-user database configuration and safe schema creation | Persistence, transaction, and GUI system tests | Yes |
 | Barcode deferral | Outside version 0.1.0 | Scope and release-claim inspection | No |
 
 Controlled `TC-NNNN` identifiers are indexed in `docs/tests/README.md`.
@@ -247,13 +248,13 @@ milestone closeout.
 | Criterion | Required evidence | Gate | Status |
 | --- | --- | --- | --- |
 | WSP adoption and milestone baselines are accepted | Adoption and review record | Required | Fail — adoption remains Proposed |
-| Every included requirement is accepted and traced | Requirements and traceability report | Required | Pass — 21 requirements, 28 specifications, 52 result records |
+| Every included requirement is accepted and traced | Requirements and traceability report | Required | Pass — 22 requirements, 30 specifications, 56 result records |
 | A clean environment builds and installs the release candidate | Build and installation evidence | Required | Fail — build passes; `TC-0028` is Blocked |
 | Authorized maintenance and audit behavior pass | Test report | Required | Fail — automated boundary passes; `TC-0026` is Blocked |
 | Representative Word fields contain expected data | Mapping and system-test evidence | Required | Fail — mapping passes; physical Word system test is Blocked |
 | A representative physical label is correct | Print-test record and inspected sample | Required | Fail — `TC-0027` is Blocked |
 | Failure recovery and Word cleanup pass | Failure-path tests | Required | Fail — component test passes; physical cleanup remains Blocked |
-| Required release-matrix entries pass | Test report and evidence inventory | Required | Fail — 48 automated Pass, four manual Blocked |
+| Required release-matrix entries pass | Test report and evidence inventory | Required | Fail — 52 automated Pass, four manual Blocked |
 | Documentation and release-readiness review pass | Review and readiness records | Required | Fail — readiness decision is Reject pending required reviews |
 | Barcode behavior is absent from release claims | Scope inspection | Informative | Pass |
 
@@ -299,6 +300,7 @@ replanning; they require correction or a revised release claim.
 - [ADR-0008: Use WPF with x86 and x64 packages](../adr-0008-use-wpf-and-x86-x64-packages.md)
 - [ADR-0009: Use WPM and GitHub Actions for delivery](../adr-0009-use-wpm-and-github-actions.md)
 - [ADR-0012: Use tagged Word content controls](../adr-0012-use-tagged-word-content-controls.md)
+- [ADR-0013: Use per-user database configuration](../adr-0013-use-per-user-database-configuration.md)
 - [Database installation](../database-installation.md)
 - [Word template contract](../word-template-contract.md)
 - [Workstation configuration](../workstation-configuration.md)

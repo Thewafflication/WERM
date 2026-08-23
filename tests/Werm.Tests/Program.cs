@@ -9,6 +9,7 @@ using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
 using System.Xml;
 using Werm.Core;
+using Werm.Core.Configuration;
 using Werm.Core.Database;
 using Werm.Core.Domain;
 using Werm.Core.Persistence;
@@ -183,7 +184,17 @@ namespace Werm.Tests
                     "TC-0024",
                     "REQ-0005",
                     "Word document cleanup after print failure",
-                    VerifyPrintFailureCleanup)
+                    VerifyPrintFailureCleanup),
+                new ControlledTest(
+                    "TC-0029",
+                    "REQ-0022,ADR-0013",
+                    "Per-user database settings persistence",
+                    () => VerifySettingsPersistence(repositoryRoot)),
+                new ControlledTest(
+                    "TC-0030",
+                    "REQ-0020,REQ-0022,ADR-0013",
+                    "Application database creation service",
+                    () => VerifyApplicationDatabaseCreation(repositoryRoot))
             };
 
             var results = new List<TestResult>();
@@ -823,6 +834,120 @@ namespace Werm.Tests
             ExpectException<InvalidOperationException>(() => service.Print(CreateLabelPrintJob()));
             Equal(1, document.PrintCount, "failed print attempts");
             Equal(true, document.Disposed, "document cleanup after failure");
+        }
+
+        private static void VerifySettingsPersistence(string repositoryRoot)
+        {
+            string path = Path.Combine(
+                repositoryRoot,
+                "out",
+                "test-data",
+                "controlled-settings.xml");
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+
+            try
+            {
+                var store = new WermSettingsStore(path);
+                var expected = new WermSettings
+                {
+                    DatabasePath = Path.Combine(repositoryRoot, "out", "test-data", "werm.db"),
+                    OdbcDriverName = "Controlled SQLite ODBC Driver",
+                    OdbcDsn = string.Empty,
+                    WordTemplatePath = Path.Combine(repositoryRoot, "label.dotx")
+                };
+                store.Save(expected);
+                WermSettings actual = store.Load(new WermSettings());
+
+                Equal(expected.DatabasePath, actual.DatabasePath, "database path setting");
+                Equal(expected.OdbcDriverName, actual.OdbcDriverName, "ODBC driver setting");
+                Equal(expected.OdbcDsn, actual.OdbcDsn, "ODBC DSN setting");
+                Equal(expected.WordTemplatePath, actual.WordTemplatePath, "Word template setting");
+
+                string xml = File.ReadAllText(path);
+                if (xml.IndexOf(
+                    "<WermSettings version=\"1\">", StringComparison.Ordinal) < 0)
+                {
+                    throw new InvalidOperationException(
+                        "The settings schema version was not persisted.");
+                }
+                if (Regex.IsMatch(xml, "password|credential|secret|hash", RegexOptions.IgnoreCase))
+                {
+                    throw new InvalidOperationException(
+                        "The per-user settings file contains a credential-like field.");
+                }
+            }
+            finally
+            {
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                }
+            }
+        }
+
+        private static void VerifyApplicationDatabaseCreation(string repositoryRoot)
+        {
+            bool schemaInstalled = false;
+            var connection = new RecordingDbConnection();
+            connection.ScalarHandler = command =>
+            {
+                if (command.CommandText == "PRAGMA foreign_keys")
+                {
+                    return 1;
+                }
+                if (command.CommandText.IndexOf(
+                    "COALESCE(MAX(Version)", StringComparison.Ordinal) >= 0)
+                {
+                    return schemaInstalled ? 1 : 0;
+                }
+                if (command.CommandText.IndexOf(
+                    "name NOT LIKE 'sqlite_%'", StringComparison.Ordinal) >= 0)
+                {
+                    return 0L;
+                }
+                return schemaInstalled ? 1L : 0L;
+            };
+            connection.NonQueryHandler = command =>
+            {
+                if (command.CommandText.IndexOf(
+                    "INSERT INTO WermSchemaVersion", StringComparison.Ordinal) >= 0)
+                {
+                    schemaInstalled = true;
+                }
+                return 1;
+            };
+
+            string databasePath = Path.Combine(
+                repositoryRoot,
+                "out",
+                "test-data",
+                "recording-database.db");
+            if (File.Exists(databasePath))
+            {
+                File.Delete(databasePath);
+            }
+            string migrationPath = Path.Combine(
+                repositoryRoot,
+                "database",
+                "migrations",
+                InitialSchemaContract.MigrationName);
+            var installer = new WermDatabaseInstaller(
+                new RecordingDbConnectionFactory(connection));
+            bool created = installer.InstallOrValidate(databasePath, migrationPath);
+
+            Equal(true, created, "missing database is reported as created");
+            Equal(true, schemaInstalled, "schema version batch executed");
+            Equal(1, connection.LastTransaction.CommitCount, "migration commit count");
+            Equal(0, connection.LastTransaction.RollbackCount, "migration rollback count");
+            int transactionalCommands = connection.Commands.FindAll(
+                command => command.Transaction != null).Count;
+            Equal(
+                SqlMigrationParser.Read(migrationPath).Batches.Count,
+                transactionalCommands,
+                "transactional migration batch count");
         }
 
         private static LabelPrintJob CreateLabelPrintJob()

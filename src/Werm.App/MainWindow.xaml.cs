@@ -1,8 +1,10 @@
 using System;
 using System.Drawing.Printing;
 using System.Globalization;
+using System.IO;
 using System.Windows;
 using Microsoft.Win32;
+using Werm.Core.Configuration;
 using Werm.Core.Domain;
 using Werm.Core.Security;
 
@@ -10,7 +12,7 @@ namespace Werm.App
 {
     public partial class MainWindow : Window
     {
-        private readonly ApplicationServices _services;
+        private ApplicationServices _services;
         private MaintenanceSession _maintenanceSession;
 
         public MainWindow(ApplicationServices services)
@@ -18,10 +20,165 @@ namespace Werm.App
             _services = services ?? throw new ArgumentNullException(nameof(services));
             InitializeComponent();
             TemplatePathTextBox.Text = services.DefaultTemplatePath ?? string.Empty;
+            LoadConfigurationForm();
             SetStatus(services.IsConfigured
                 ? "Ready. Database: " + services.DatabasePath
                 : "Configuration required: " + services.ConfigurationError);
             LoadInstalledPrinters();
+            RefreshOdbcCatalog();
+        }
+
+        private void LoadConfigurationForm()
+        {
+            WermSettings settings = _services.Settings;
+            DatabasePathTextBox.Text = settings.DatabasePath ?? string.Empty;
+            OdbcDriverComboBox.Text = settings.OdbcDriverName ?? string.Empty;
+            OdbcDsnComboBox.Text = settings.OdbcDsn ?? string.Empty;
+            ConfigurationTemplatePathTextBox.Text = settings.WordTemplatePath ?? string.Empty;
+            DsnModeRadioButton.IsChecked = !string.IsNullOrWhiteSpace(settings.OdbcDsn);
+            DriverModeRadioButton.IsChecked = DsnModeRadioButton.IsChecked != true;
+            SettingsLocationTextBlock.Text = "Per-user settings file: " +
+                _services.SettingsFilePath;
+            EnvironmentOverridesTextBlock.Text = _services.EnvironmentOverrides.Count == 0
+                ? "No WERM environment-variable overrides are active."
+                : "Environment overrides are active and take precedence: " +
+                    string.Join(", ", _services.EnvironmentOverrides);
+            UpdateConnectionMode();
+        }
+
+        private WermSettings ReadConfigurationForm()
+        {
+            return new WermSettings
+            {
+                DatabasePath = DatabasePathTextBox.Text,
+                OdbcDriverName = DriverModeRadioButton.IsChecked == true
+                    ? OdbcDriverComboBox.Text
+                    : string.Empty,
+                OdbcDsn = DsnModeRadioButton.IsChecked == true
+                    ? OdbcDsnComboBox.Text
+                    : string.Empty,
+                WordTemplatePath = ConfigurationTemplatePathTextBox.Text
+            };
+        }
+
+        private ApplicationServices CreateServicesFromForm()
+        {
+            ApplicationServices services = ApplicationServices.Create(ReadConfigurationForm());
+            if (!services.IsConfigured)
+            {
+                throw new InvalidOperationException(services.ConfigurationError);
+            }
+            return services;
+        }
+
+        private void BrowseDatabase_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new OpenFileDialog
+            {
+                CheckFileExists = false,
+                DefaultExt = ".db",
+                Filter = "SQLite databases|*.db;*.sqlite;*.sqlite3|All files|*.*",
+                FileName = Path.GetFileName(DatabasePathTextBox.Text)
+            };
+            string currentDirectory = Path.GetDirectoryName(DatabasePathTextBox.Text);
+            if (!string.IsNullOrWhiteSpace(currentDirectory) && Directory.Exists(currentDirectory))
+            {
+                dialog.InitialDirectory = currentDirectory;
+            }
+            if (dialog.ShowDialog(this) == true)
+            {
+                DatabasePathTextBox.Text = dialog.FileName;
+            }
+        }
+
+        private void BrowseConfigurationTemplate_Click(object sender, RoutedEventArgs e)
+        {
+            string selected = SelectWordTemplate(ConfigurationTemplatePathTextBox.Text);
+            if (selected != null)
+            {
+                ConfigurationTemplatePathTextBox.Text = selected;
+            }
+        }
+
+        private void ConnectionMode_Checked(object sender, RoutedEventArgs e)
+        {
+            UpdateConnectionMode();
+        }
+
+        private void UpdateConnectionMode()
+        {
+            if (OdbcDriverComboBox == null || OdbcDsnComboBox == null)
+            {
+                return;
+            }
+            OdbcDriverComboBox.IsEnabled = DriverModeRadioButton.IsChecked == true;
+            OdbcDsnComboBox.IsEnabled = DsnModeRadioButton.IsChecked == true;
+        }
+
+        private void RefreshOdbc_Click(object sender, RoutedEventArgs e)
+        {
+            RefreshOdbcCatalog();
+        }
+
+        private void RefreshOdbcCatalog()
+        {
+            string selectedDriver = OdbcDriverComboBox.Text;
+            string selectedDsn = OdbcDsnComboBox.Text;
+            try
+            {
+                var catalog = new OdbcRegistryCatalog();
+                OdbcDriverComboBox.Items.Clear();
+                foreach (string driver in catalog.GetInstalledDrivers())
+                {
+                    OdbcDriverComboBox.Items.Add(driver);
+                }
+                OdbcDsnComboBox.Items.Clear();
+                foreach (string dsn in catalog.GetDataSourceNames())
+                {
+                    OdbcDsnComboBox.Items.Add(dsn);
+                }
+                OdbcDriverComboBox.Text = selectedDriver;
+                OdbcDsnComboBox.Text = selectedDsn;
+            }
+            catch (Exception exception)
+            {
+                SetStatus("ODBC registrations could not be enumerated: " + exception.Message);
+            }
+        }
+
+        private void TestDatabase_Click(object sender, RoutedEventArgs e)
+        {
+            Run("Connection succeeded and the WERM schema is valid.", () =>
+            {
+                CreateServicesFromForm().VerifyDatabase();
+            });
+        }
+
+        private void CreateDatabase_Click(object sender, RoutedEventArgs e)
+        {
+            Run("Database creation/validation succeeded. Save these settings to use it.", () =>
+            {
+                CreateServicesFromForm().InstallOrValidateDatabase();
+            });
+        }
+
+        private void SaveDatabaseSettings_Click(object sender, RoutedEventArgs e)
+        {
+            Run("Database settings saved and applied.", () =>
+            {
+                WermSettings settings = ReadConfigurationForm();
+                ApplicationServices.SaveUserSettings(settings);
+                if (_services.Authorizer != null)
+                {
+                    _services.Authorizer.EndSession(_maintenanceSession);
+                }
+                _maintenanceSession = null;
+                SetMaintenanceWritesEnabled(false);
+                _services = ApplicationServices.Create();
+                LoadConfigurationForm();
+                TemplatePathTextBox.Text = _services.DefaultTemplatePath ?? string.Empty;
+                DemandConfigured();
+            });
         }
 
         private void LoadInstalledPrinters()
@@ -46,15 +203,27 @@ namespace Werm.App
 
         private void BrowseTemplate_Click(object sender, RoutedEventArgs e)
         {
+            string selected = SelectWordTemplate(TemplatePathTextBox.Text);
+            if (selected != null)
+            {
+                TemplatePathTextBox.Text = selected;
+            }
+        }
+
+        private string SelectWordTemplate(string currentPath)
+        {
             var dialog = new OpenFileDialog
             {
                 CheckFileExists = true,
-                Filter = "Word templates and documents|*.dotx;*.dotm;*.docx;*.docm|All files|*.*"
+                Filter = "Word templates and documents|*.dotx;*.dotm;*.docx;*.docm|All files|*.*",
+                FileName = Path.GetFileName(currentPath)
             };
-            if (dialog.ShowDialog(this) == true)
+            string directory = Path.GetDirectoryName(currentPath);
+            if (!string.IsNullOrWhiteSpace(directory) && Directory.Exists(directory))
             {
-                TemplatePathTextBox.Text = dialog.FileName;
+                dialog.InitialDirectory = directory;
             }
+            return dialog.ShowDialog(this) == true ? dialog.FileName : null;
         }
 
         private void PrintLabel_Click(object sender, RoutedEventArgs e)

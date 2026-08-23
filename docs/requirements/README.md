@@ -31,6 +31,7 @@ verification method, and architectural relationships.
 | [REQ-0019](req-0019-sqlite-odbc-access.md) | SQLite ODBC access | Accepted |
 | [REQ-0020](req-0020-repeatable-database-installation.md) | Repeatable database installation | Accepted |
 | [REQ-0021](req-0021-waughtal-shell-database-installer.md) | Waughtal Shell database installer | Accepted |
+| [REQ-0022](req-0022-database-configuration-screen.md) | Database configuration screen | Accepted |
 
 All version 0.1.0 product requirements are accepted. Remaining physical and
 environment-dependent verification gates are tracked in the milestone plan.

@@ -1,6 +1,6 @@
 # Controlled Test Specifications
 
-`TC-0001` through `TC-0024` incorporate the
+`TC-0001` through `TC-0024` and `TC-0029` through `TC-0030` incorporate the
 [automated test execution contract](automated-test-execution-contract.md).
 Environment-dependent release tests `TC-0025` through `TC-0028` define their
 complete manual procedures and retain operator observations separately.
@@ -35,6 +35,8 @@ complete manual procedures and retain operator observations separately.
 | [TC-0026](tc-0026-authorized-gui-maintenance.md) | `REQ-0012`, `REQ-0015`–`REQ-0018` | Verify the authenticated WPF maintenance and audit-history workflow |
 | [TC-0027](tc-0027-word-label-printer-integration.md) | `REQ-0003`–`REQ-0006` | Verify actual Word automation and physical label output |
 | [TC-0028](tc-0028-wpm-clean-install.md) | `REQ-0001`, `REQ-0006`, `REQ-0020`, `REQ-0021` | Verify clean WPM install, launch, recovery, and removal |
+| [TC-0029](tc-0029-database-settings-persistence.md) | `REQ-0022` | Verify versioned, non-secret per-user database settings |
+| [TC-0030](tc-0030-application-database-creation.md) | `REQ-0020`, `REQ-0022` | Verify application-side transactional schema creation |
 
 The executable runner writes architecture, runtime, source revision, timestamp,
 verdict, and diagnostics to XML. GitHub Actions retains the Debug executable,

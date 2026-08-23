@@ -27,7 +27,7 @@ database files during setup.
 
 **Method:** Test
 
-**References:** `TC-0008`, `TC-0025`, `TC-0028`
+**References:** `TC-0008`, `TC-0025`, `TC-0028`, `TC-0030`
 
 Run the installer against a missing database, the resulting current database,
 an unrecognized non-empty database, a database newer than the installer, and a
@@ -48,7 +48,8 @@ None.
 
 ## Implementation Record
 
-Implemented initially by `tools/install-werm-database.wsh`, its temporary
-PowerShell ODBC worker, and `database/migrations/0001-initial-schema.sql`.
+Implemented by `tools/install-werm-database.wsh`, its PowerShell ODBC worker,
+the application-side `WermDatabaseInstaller`, and
+`database/migrations/0001-initial-schema.sql`.
 Release verification remains pending an execution-capable Waughtal Shell
 baseline and selection of the SQLite ODBC driver.

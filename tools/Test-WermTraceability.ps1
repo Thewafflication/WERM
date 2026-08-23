@@ -102,6 +102,7 @@ foreach ($file in Get-ChildItem (Join-Path $root 'docs\tests') -Filter 'tc-*.md'
         File = $file.FullName
         Requirements = $requirementIds
         References = $referenceIds
+        IsAutomated = $text -match '(?m)^\*\*Execution contract:\*\* '
     }
 }
 
@@ -204,8 +205,7 @@ if (-not (Test-Path -LiteralPath $resolvedManual -PathType Leaf)) {
 
 $automatedUnique = @($automatedIds | Sort-Object -Unique)
 foreach ($test in $tests.Values) {
-    $number = [int]$test.Id.Substring(3)
-    $hasResult = if ($number -le 24) {
+    $hasResult = if ($test.IsAutomated) {
         $automatedUnique -contains $test.Id
     } else {
         @($resultRecords | Where-Object { $_.Id -eq $test.Id }).Count -gt 0

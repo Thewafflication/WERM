@@ -14,10 +14,16 @@ Before launching WERM, read:
 - `docs/word-template-contract.md` for the nine exact
   required content-control tags.
 
-Run `Werm.exe` after configuring the database connection. Printing remains
+Run `Werm.exe`, then use **Database configuration** to choose the SQLite file
+and ODBC driver or DSN. The screen can create a missing database with the WERM
+schema, test it, and save the choices for the current Windows user. Printing remains
 available while maintenance is locked. Product, customer, and price Save
 buttons require an initialized password and authenticated operator session.
 Product audit history is read-only in the Product area.
+
+Managed deployments may set the documented `WERM_*` environment variables;
+they take precedence over the screen's per-user settings and are identified on
+the screen.
 
 The package identity and source revision are in `.wpm/package.txt`. A CI or
 engineering-candidate version is not an approved release unless accompanied by

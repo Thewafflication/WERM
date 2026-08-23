@@ -26,6 +26,7 @@ Version 0.1.0 does not store, generate, populate, or print barcodes.
 - [ADR-0010: Hash the maintenance password and gate write sessions](adr-0010-hash-maintenance-password.md)
 - [ADR-0011: Use ODBC repositories with atomic audit transactions](adr-0011-use-odbc-repository-transactions.md)
 - [ADR-0012: Use tagged Word content controls and late-bound automation](adr-0012-use-tagged-word-content-controls.md)
+- [ADR-0013: Use per-user database configuration](adr-0013-use-per-user-database-configuration.md)
 
 ## Design
 

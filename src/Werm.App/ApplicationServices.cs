@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
+using Werm.Core.Configuration;
+using Werm.Core.Database;
 using Werm.Core.Persistence;
 using Werm.Core.Printing;
 using Werm.Core.Security;
@@ -16,24 +19,37 @@ namespace Werm.App
             MaintenanceAuthorizer authorizer,
             MaintenanceService maintenanceService,
             LabelWorkflowService labelWorkflowService,
-            string databasePath,
-            string defaultTemplatePath,
+            WermSettings settings,
+            string settingsFilePath,
+            IList<string> environmentOverrides,
             string configurationError)
         {
             Authorizer = authorizer;
             MaintenanceService = maintenanceService;
             LabelWorkflowService = labelWorkflowService;
-            DatabasePath = databasePath;
-            DefaultTemplatePath = defaultTemplatePath;
+            Settings = settings;
+            SettingsFilePath = settingsFilePath;
+            EnvironmentOverrides = environmentOverrides;
             ConfigurationError = configurationError;
         }
 
         public MaintenanceAuthorizer Authorizer { get; private set; }
         public MaintenanceService MaintenanceService { get; private set; }
         public LabelWorkflowService LabelWorkflowService { get; private set; }
-        public string DatabasePath { get; private set; }
-        public string DefaultTemplatePath { get; private set; }
+        public WermSettings Settings { get; private set; }
+        public string SettingsFilePath { get; private set; }
+        public IList<string> EnvironmentOverrides { get; private set; }
         public string ConfigurationError { get; private set; }
+
+        public string DatabasePath
+        {
+            get { return Settings.DatabasePath; }
+        }
+
+        public string DefaultTemplatePath
+        {
+            get { return Settings.WordTemplatePath; }
+        }
 
         public bool IsConfigured
         {
@@ -42,35 +58,60 @@ namespace Werm.App
 
         public static ApplicationServices Create()
         {
-            string databasePath = ReadSetting("DatabasePath");
-            if (string.IsNullOrWhiteSpace(databasePath))
-            {
-                databasePath = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
-                    "WERM",
-                    "werm.db");
-            }
-
-            string templatePath = ReadSetting("WordTemplatePath");
-            string driverName = ReadSetting("OdbcDriverName");
-            string dsn = ReadSetting("OdbcDsn");
+            string settingsPath = GetSettingsFilePath();
             try
             {
-                OdbcConnectionOptions options;
-                if (!string.IsNullOrWhiteSpace(dsn))
-                {
-                    options = OdbcConnectionOptions.ForDsn(databasePath, dsn);
-                }
-                else if (!string.IsNullOrWhiteSpace(driverName))
-                {
-                    options = OdbcConnectionOptions.ForDriver(databasePath, driverName);
-                }
-                else
-                {
-                    throw new ConfigurationErrorsException(
-                        "Set WERM_ODBC_DSN or WERM_ODBC_DRIVER before using the database.");
-                }
+                IList<string> overrides;
+                WermSettings settings = LoadEffectiveSettings(settingsPath, out overrides);
+                return Create(settings, settingsPath, overrides);
+            }
+            catch (Exception exception)
+            {
+                return new ApplicationServices(
+                    null,
+                    null,
+                    null,
+                    CreateDefaultSettings(),
+                    settingsPath,
+                    new List<string>(),
+                    "The per-user settings could not be loaded: " + exception.Message);
+            }
+        }
 
+        public static ApplicationServices Create(WermSettings settings)
+        {
+            return Create(settings, GetSettingsFilePath(), new List<string>());
+        }
+
+        public static void SaveUserSettings(WermSettings settings)
+        {
+            ValidateSettings(settings);
+            new WermSettingsStore(GetSettingsFilePath()).Save(settings);
+        }
+
+        public void VerifyDatabase()
+        {
+            DemandConfigured();
+            CreateInstaller(Settings).VerifyExisting(Settings.DatabasePath);
+        }
+
+        public bool InstallOrValidateDatabase()
+        {
+            DemandConfigured();
+            return CreateInstaller(Settings).InstallOrValidate(
+                Settings.DatabasePath,
+                GetMigrationPath());
+        }
+
+        private static ApplicationServices Create(
+            WermSettings settings,
+            string settingsFilePath,
+            IList<string> environmentOverrides)
+        {
+            try
+            {
+                ValidateSettings(settings);
+                OdbcConnectionOptions options = CreateOptions(settings);
                 var clock = new SystemUtcClock();
                 var connectionFactory = new OdbcConnectionFactory(options);
                 var dataStore = new OdbcWermDataStore(connectionFactory, clock);
@@ -88,8 +129,9 @@ namespace Werm.App
                     authorizer,
                     maintenance,
                     labelWorkflow,
-                    Path.GetFullPath(databasePath),
-                    templatePath,
+                    settings.Clone(),
+                    settingsFilePath,
+                    environmentOverrides,
                     null);
             }
             catch (Exception exception)
@@ -98,30 +140,125 @@ namespace Werm.App
                     null,
                     null,
                     null,
-                    databasePath,
-                    templatePath,
+                    settings == null ? new WermSettings() : settings.Clone(),
+                    settingsFilePath,
+                    environmentOverrides,
                     exception.Message);
             }
         }
 
-        private static string ReadSetting(string name)
+        private static WermDatabaseInstaller CreateInstaller(WermSettings settings)
         {
-            string environmentValue = Environment.GetEnvironmentVariable("WERM_" +
-                ConvertSettingName(name));
-            return !string.IsNullOrWhiteSpace(environmentValue)
-                ? environmentValue.Trim()
-                : (ConfigurationManager.AppSettings[name] ?? string.Empty).Trim();
+            return new WermDatabaseInstaller(
+                new OdbcConnectionFactory(CreateOptions(settings)));
         }
 
-        private static string ConvertSettingName(string settingName)
+        private static OdbcConnectionOptions CreateOptions(WermSettings settings)
         {
-            switch (settingName)
+            return !string.IsNullOrWhiteSpace(settings.OdbcDsn)
+                ? OdbcConnectionOptions.ForDsn(settings.DatabasePath, settings.OdbcDsn)
+                : OdbcConnectionOptions.ForDriver(
+                    settings.DatabasePath,
+                    settings.OdbcDriverName);
+        }
+
+        private static void ValidateSettings(WermSettings settings)
+        {
+            if (settings == null)
             {
-                case "DatabasePath": return "DATABASE_PATH";
-                case "OdbcDriverName": return "ODBC_DRIVER";
-                case "OdbcDsn": return "ODBC_DSN";
-                case "WordTemplatePath": return "WORD_TEMPLATE";
-                default: throw new ArgumentOutOfRangeException(nameof(settingName));
+                throw new ArgumentNullException(nameof(settings));
+            }
+            if (string.IsNullOrWhiteSpace(settings.DatabasePath))
+            {
+                throw new ConfigurationErrorsException("Select a SQLite database file.");
+            }
+            settings.DatabasePath = Path.GetFullPath(settings.DatabasePath.Trim());
+            settings.OdbcDriverName = (settings.OdbcDriverName ?? string.Empty).Trim();
+            settings.OdbcDsn = (settings.OdbcDsn ?? string.Empty).Trim();
+            settings.WordTemplatePath = (settings.WordTemplatePath ?? string.Empty).Trim();
+            if (settings.OdbcDsn.Length == 0 && settings.OdbcDriverName.Length == 0)
+            {
+                throw new ConfigurationErrorsException(
+                    "Select a registered ODBC driver or data-source name (DSN).");
+            }
+        }
+
+        private static WermSettings LoadEffectiveSettings(
+            string settingsPath,
+            out IList<string> overrides)
+        {
+            WermSettings defaults = CreateDefaultSettings();
+            WermSettings settings = new WermSettingsStore(settingsPath).Load(defaults);
+            var names = new List<string>();
+            Override(settings, "DatabasePath", "WERM_DATABASE_PATH", names);
+            Override(settings, "OdbcDriverName", "WERM_ODBC_DRIVER", names);
+            Override(settings, "OdbcDsn", "WERM_ODBC_DSN", names);
+            Override(settings, "WordTemplatePath", "WERM_WORD_TEMPLATE", names);
+            overrides = names;
+            return settings;
+        }
+
+        private static WermSettings CreateDefaultSettings()
+        {
+            var defaults = new WermSettings
+            {
+                DatabasePath = ReadAppSetting("DatabasePath"),
+                OdbcDriverName = ReadAppSetting("OdbcDriverName"),
+                OdbcDsn = ReadAppSetting("OdbcDsn"),
+                WordTemplatePath = ReadAppSetting("WordTemplatePath")
+            };
+            if (string.IsNullOrWhiteSpace(defaults.DatabasePath))
+            {
+                defaults.DatabasePath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                    "WERM",
+                    "werm.db");
+            }
+            return defaults;
+        }
+
+        private static void Override(
+            WermSettings settings,
+            string property,
+            string environmentName,
+            IList<string> names)
+        {
+            string value = Environment.GetEnvironmentVariable(environmentName);
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return;
+            }
+            typeof(WermSettings).GetProperty(property).SetValue(settings, value.Trim(), null);
+            names.Add(environmentName);
+        }
+
+        private static string ReadAppSetting(string name)
+        {
+            return (ConfigurationManager.AppSettings[name] ?? string.Empty).Trim();
+        }
+
+        private static string GetSettingsFilePath()
+        {
+            return Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "WERM",
+                "settings.xml");
+        }
+
+        private static string GetMigrationPath()
+        {
+            return Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "database",
+                "migrations",
+                InitialSchemaContract.MigrationName);
+        }
+
+        private void DemandConfigured()
+        {
+            if (!IsConfigured)
+            {
+                throw new InvalidOperationException(ConfigurationError);
             }
         }
     }

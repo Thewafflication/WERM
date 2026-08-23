@@ -10,9 +10,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApplicationIdentity.cs" />
+    <Compile Include="Configuration\WermSettings.cs" />
     <Compile Include="Database\InitialSchemaContract.cs" />
     <Compile Include="Database\SqlMigration.cs" />
     <Compile Include="Database\SqlMigrationParser.cs" />

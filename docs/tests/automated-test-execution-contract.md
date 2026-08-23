@@ -1,6 +1,6 @@
 # Automated Controlled-Test Execution Contract
 
-**Applies to:** `TC-0001` through `TC-0024`
+**Applies to:** `TC-0001` through `TC-0024`, `TC-0029`, and `TC-0030`
 
 This controlled contract supplies the common test-case content incorporated by
 reference into each automated WERM specification. A case-specific document's
@@ -27,7 +27,7 @@ precedence when it is more specific.
   source revision.
 - Tests use deterministic in-process doubles unless the case explicitly names
   an external process or filesystem fixture. Microsoft Word, a live ODBC
-  driver, and a physical printer are not assumed for `TC-0001`–`TC-0024`.
+  driver, and a physical printer are not assumed for automated cases.
 
 ## Inputs and initial state
 

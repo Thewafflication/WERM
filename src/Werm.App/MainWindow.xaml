@@ -1,7 +1,7 @@
 <Window x:Class="Werm.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="WERM 0.1.0 — Label Printing" Height="780" Width="1060"
+        Title="WERM 0.1.0 — Label Printing" Height="820" Width="1060"
         MinHeight="640" MinWidth="900" WindowStartupLocation="CenterScreen">
   <Grid Margin="20">
     <Grid.RowDefinitions>
@@ -58,6 +58,80 @@
                        Margin="16,0,0,0" VerticalAlignment="Center" Foreground="#555" />
           </StackPanel>
         </Grid>
+      </TabItem>
+
+      <TabItem Header="Database configuration">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <Grid Margin="22" MaxWidth="900" HorizontalAlignment="Left">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="190" />
+              <ColumnDefinition Width="560" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.ColumnSpan="3" Margin="0,0,0,14"
+                       TextWrapping="Wrap" Foreground="#444"
+                       Text="Choose the SQLite file and the matching-bitness ODBC connection. Settings are saved for this Windows user; no database credentials are stored." />
+
+            <TextBlock Grid.Row="1" Text="SQLite database file" VerticalAlignment="Center" />
+            <TextBox x:Name="DatabasePathTextBox" Grid.Row="1" Grid.Column="1" Margin="8" />
+            <Button Grid.Row="1" Grid.Column="2" Content="Browse…" Margin="4,8"
+                    Padding="16,5" Click="BrowseDatabase_Click" />
+
+            <RadioButton x:Name="DriverModeRadioButton" Grid.Row="2" Content="Registered ODBC driver"
+                         Margin="0,10,0,0" IsChecked="True" Checked="ConnectionMode_Checked" />
+            <ComboBox x:Name="OdbcDriverComboBox" Grid.Row="2" Grid.Column="1" Margin="8"
+                      IsEditable="True" />
+
+            <RadioButton x:Name="DsnModeRadioButton" Grid.Row="3" Content="ODBC data source (DSN)"
+                         Margin="0,10,0,0" Checked="ConnectionMode_Checked" />
+            <ComboBox x:Name="OdbcDsnComboBox" Grid.Row="3" Grid.Column="1" Margin="8"
+                      IsEditable="True" />
+            <Button Grid.Row="3" Grid.Column="2" Content="Refresh ODBC list" Margin="4,8"
+                    Padding="12,5" Click="RefreshOdbc_Click" />
+
+            <TextBlock Grid.Row="4" Text="Default Word template" VerticalAlignment="Center" />
+            <TextBox x:Name="ConfigurationTemplatePathTextBox" Grid.Row="4" Grid.Column="1"
+                     Margin="8" />
+            <Button Grid.Row="4" Grid.Column="2" Content="Browse…" Margin="4,8"
+                    Padding="16,5" Click="BrowseConfigurationTemplate_Click" />
+
+            <WrapPanel Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" Margin="8,16,8,8">
+              <Button Content="Test existing database" Padding="16,7" Margin="0,0,8,0"
+                      Click="TestDatabase_Click" />
+              <Button Content="Create or validate database" Padding="16,7" Margin="0,0,8,0"
+                      Click="CreateDatabase_Click" />
+              <Button Content="Save settings" Padding="20,7" Click="SaveDatabaseSettings_Click" />
+            </WrapPanel>
+
+            <Border Grid.Row="6" Grid.ColumnSpan="3" BorderBrush="#DDD" BorderThickness="1"
+                    Padding="12" Margin="0,14,0,0">
+              <StackPanel>
+                <TextBlock Text="Creation safety" FontWeight="SemiBold" />
+                <TextBlock Margin="0,5,0,0" TextWrapping="Wrap"
+                           Text="A missing or empty file receives the controlled WERM schema. An existing WERM file is validated. Unrecognized, newer, or partially-created databases are rejected and are never replaced." />
+                <TextBlock Margin="0,8,0,0" TextWrapping="Wrap"
+                           Text="After creating a new database, use the Maintenance tab to initialize the maintenance password." />
+              </StackPanel>
+            </Border>
+
+            <TextBlock Grid.Row="7" Grid.ColumnSpan="3" x:Name="SettingsLocationTextBlock"
+                       Margin="0,14,0,0" TextWrapping="Wrap" Foreground="#555" />
+            <TextBlock Grid.Row="8" Grid.ColumnSpan="3" x:Name="EnvironmentOverridesTextBlock"
+                       Margin="0,6,0,0" TextWrapping="Wrap" Foreground="#8A4B00" />
+          </Grid>
+        </ScrollViewer>
       </TabItem>
 
       <TabItem Header="Maintenance">

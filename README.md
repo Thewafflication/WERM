@@ -36,5 +36,6 @@ For an operational workstation, follow
 author templates against
 [`docs/word-template-contract.md`](docs/word-template-contract.md). The WPF
 screen lets an operator select PLU, customer ID, price type, template, printer,
-and copies. Database changes are available only through an authenticated
-maintenance session.
+and copies. A Database configuration tab selects the SQLite/ODBC connection,
+tests or creates the schema, and saves per-user settings. Business-data changes
+are available only through an authenticated maintenance session.
