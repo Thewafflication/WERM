@@ -21,6 +21,16 @@
     <Compile Include="Domain\DomainText.cs" />
     <Compile Include="Domain\Product.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Security\IMaintenanceCredentialStore.cs" />
+    <Compile Include="Security\IPasswordHasher.cs" />
+    <Compile Include="Security\IUtcClock.cs" />
+    <Compile Include="Security\MaintenanceAuthorizationException.cs" />
+    <Compile Include="Security\MaintenanceAuthorizer.cs" />
+    <Compile Include="Security\MaintenanceSession.cs" />
+    <Compile Include="Security\PasswordCredential.cs" />
+    <Compile Include="Security\PasswordPolicy.cs" />
+    <Compile Include="Security\Pbkdf2PasswordHasher.cs" />
+    <Compile Include="Security\SystemUtcClock.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

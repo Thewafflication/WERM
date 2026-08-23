@@ -23,6 +23,7 @@ Version 0.1.0 does not store, generate, populate, or print barcodes.
 - [ADR-0007: Use Waughtal Shell for database installation](adr-0007-use-waughtal-shell-database-installer.md)
 - [ADR-0008: Use WPF with x86 and x64 packages](adr-0008-use-wpf-and-x86-x64-packages.md)
 - [ADR-0009: Use WPM and GitHub Actions for delivery](adr-0009-use-wpm-and-github-actions.md)
+- [ADR-0010: Hash the maintenance password and gate write sessions](adr-0010-hash-maintenance-password.md)
 
 ## Design
 
@@ -45,15 +46,13 @@ Version 0.1.0 does not store, generate, populate, or print barcodes.
 The following choices remain open and require separate review before their
 implementation becomes authoritative:
 
-- WPF or Windows Forms for the desktop user interface;
 - SQLite ODBC driver, version, deployment, bitness, and DSN model;
 - Word content controls, bookmarks, or another named-field mechanism;
 - field-mapping configuration and template discovery;
 - customer and price import workflows;
 - price effective dates and scheduled price changes;
-- password hashing and credential-administration mechanism;
 - printer selection, printer defaults, and print-error behavior; and
-- print history and operational logging;
+- print history and operational logging; and
 - record-selection workflow.
 
 Barcode symbologies and customer-specific barcode rules are deferred until a

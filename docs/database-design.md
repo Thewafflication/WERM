@@ -16,6 +16,29 @@ The SQL is a design baseline. WERM will execute it through `System.Data.Odbc`
 and a SQLite ODBC driver. Migration packaging, the exact driver, driver
 bitness, and the DSN model remain open.
 
+## Maintenance Credential
+
+`MaintenanceCredential` stores the only password verifier used to unlock GUI
+maintenance. The fixed key prevents multiple ambiguous password records. Salt
+and hash bytes are encoded as Base64 text for predictable ODBC conversion.
+
+```sql
+CREATE TABLE MaintenanceCredential
+(
+    CredentialId   INTEGER NOT NULL PRIMARY KEY
+        CHECK (CredentialId = 1),
+    Algorithm      TEXT NOT NULL,
+    IterationCount INTEGER NOT NULL,
+    SaltBase64     TEXT NOT NULL,
+    HashBase64     TEXT NOT NULL,
+    CreatedUtc     TEXT NOT NULL,
+    ModifiedUtc    TEXT NOT NULL
+);
+```
+
+The table never stores a plaintext password or reversible encrypted password.
+The hashing and session contract is defined by ADR-0010.
+
 ## Relationships
 
 ```text
@@ -211,15 +234,17 @@ The GUI will allow reading, searching, and printing without entering the
 maintenance password. A user must successfully enter the maintenance password
 before modifying product, customer, or price data.
 
-The credential-storage and password-hashing mechanism remains an open security
-design decision. WERM will not store a plaintext password.
+An unconfigured database requires first-run password initialization before any
+maintenance operation can be authorized. WERM stores a salted
+PBKDF2-HMAC-SHA512 verifier, applies failed-attempt throttling, and issues a
+fixed 10-minute in-process maintenance session after successful verification.
+Password changes revoke every active maintenance session. See ADR-0010.
 
 ## Open Design Items
 
 - permitted price types, bases, currencies, and display rules;
 - effective dating and scheduled prices;
 - customer-specific label-template configuration;
-- credential storage, password changes, and edit-session timeout;
 - audit snapshot, integrity-check, retention, and backup policy; and
 - migration and schema-version management.
 - ODBC driver, architecture, installer, and DSN model.
@@ -233,5 +258,6 @@ until a milestone after version 0.1.0.
 - [ADR-0004: Separate product facts from customer prices](adr-0004-separate-customer-product-prices.md)
 - [ADR-0005: Retain append-only product audit history](adr-0005-append-only-product-audit-history.md)
 - [ADR-0006: Access SQLite through ODBC](adr-0006-access-sqlite-through-odbc.md)
+- [ADR-0010: Hash the maintenance password and gate write sessions](adr-0010-hash-maintenance-password.md)
 - [Database installation](database-installation.md)
 - [Product requirements](requirements/README.md)

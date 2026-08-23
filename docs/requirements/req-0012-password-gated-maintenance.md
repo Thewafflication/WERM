@@ -26,7 +26,7 @@ maintenance.
 
 **Method:** Test
 
-**References:** To be assigned
+**References:** `TC-0009`, `TC-0010`, `TC-0011`
 
 Attempt each protected operation before authentication, with an incorrect
 password, and with the correct password. Verification passes when only the
@@ -35,7 +35,7 @@ successfully authenticated session can enable the operations.
 ## Relationships
 
 - **Derived from:** Stakeholder need
-- **Depends on:** Credential design to be recorded
+- **Depends on:** [ADR-0010](../adr-0010-hash-maintenance-password.md)
 - **Conflicts with:** Anonymous GUI maintenance
 
 ## Tailoring
@@ -44,5 +44,7 @@ None.
 
 ## Implementation Record
 
-Not yet implemented. Credential storage, hashing, password administration, and
-edit-session timeout remain open design items.
+The core authorization boundary implements salted PBKDF2-HMAC-SHA512 password
+verification, first-run initialization, failed-attempt throttling, fixed
+10-minute sessions, logout, and session revocation on password change. The
+SQLite schema stores only verifier metadata. GUI integration remains pending.

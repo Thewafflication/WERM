@@ -9,6 +9,7 @@ using System.Xml;
 using Werm.Core;
 using Werm.Core.Database;
 using Werm.Core.Domain;
+using Werm.Core.Security;
 
 namespace Werm.Tests
 {
@@ -96,7 +97,22 @@ namespace Werm.Tests
                     "TC-0008",
                     "REQ-0020",
                     "Database installer safe connection failure",
-                    () => VerifyInstallerSafeFailure(repositoryRoot, expectedArchitecture))
+                    () => VerifyInstallerSafeFailure(repositoryRoot, expectedArchitecture)),
+                new ControlledTest(
+                    "TC-0009",
+                    "REQ-0012",
+                    "Maintenance password verifier",
+                    VerifyMaintenancePassword),
+                new ControlledTest(
+                    "TC-0010",
+                    "REQ-0012",
+                    "Password-gated maintenance session",
+                    VerifyMaintenanceSession),
+                new ControlledTest(
+                    "TC-0011",
+                    "REQ-0012",
+                    "Failed authentication throttling",
+                    VerifyAuthenticationThrottling)
             };
 
             var results = new List<TestResult>();
@@ -236,10 +252,10 @@ namespace Werm.Tests
                 "migrations",
                 InitialSchemaContract.MigrationName);
             SqlMigration migration = SqlMigrationParser.Read(migrationPath);
-            if (migration.Batches.Count != 10)
+            if (migration.Batches.Count != 11)
             {
                 throw new InvalidOperationException(
-                    "Expected 10 controlled migration batches but found " + migration.Batches.Count + ".");
+                    "Expected 11 controlled migration batches but found " + migration.Batches.Count + ".");
             }
 
             foreach (string tableName in InitialSchemaContract.ExpectedTableNames)
@@ -338,6 +354,155 @@ namespace Werm.Tests
         private static string QuoteArgument(string value)
         {
             return "\"" + value.Replace("\"", "\\\"") + "\"";
+        }
+
+        private static void VerifyMaintenancePassword()
+        {
+            const string password = "correct horse battery staple";
+            var hasher = new Pbkdf2PasswordHasher();
+            PasswordCredential first = hasher.Create(password);
+            PasswordCredential second = hasher.Create(password);
+
+            Equal(Pbkdf2PasswordHasher.AlgorithmName, first.Algorithm, "password algorithm");
+            Equal(Pbkdf2PasswordHasher.DefaultIterationCount, first.IterationCount, "iteration count");
+            Equal(Pbkdf2PasswordHasher.SaltLength, first.GetSalt().Length, "salt length");
+            Equal(Pbkdf2PasswordHasher.HashLength, first.GetHash().Length, "hash length");
+            Equal(true, hasher.Verify(password, first), "correct-password verification");
+            Equal(false, hasher.Verify("incorrect password value", first), "wrong-password verification");
+            Equal(false, ByteArraysEqual(first.GetSalt(), second.GetSalt()), "unique salts");
+            ExpectException<ArgumentException>(() => hasher.Create(new string('x', 14)));
+            ExpectException<ArgumentException>(() => hasher.Create(new string('x', 257)));
+        }
+
+        private static void VerifyMaintenanceSession()
+        {
+            var store = new InMemoryCredentialStore();
+            var hasher = new DeterministicPasswordHasher("a sufficiently long password");
+            var clock = new AdjustableClock(new DateTimeOffset(2026, 8, 22, 20, 0, 0, TimeSpan.Zero));
+            var authorizer = new MaintenanceAuthorizer(store, hasher, clock);
+
+            authorizer.InitializePassword("a sufficiently long password");
+            ExpectException<InvalidOperationException>(() =>
+                authorizer.InitializePassword("another sufficiently long password"));
+            ExpectException<MaintenanceAuthorizationException>(() => authorizer.DemandAuthorized(null));
+
+            MaintenanceSession session;
+            Equal(false, authorizer.TryAuthenticate("wrong", "operator", out session), "wrong password");
+            Equal(true, authorizer.TryAuthenticate(
+                "a sufficiently long password", " operator ", out session), "correct password");
+            Equal("operator", authorizer.DemandAuthorized(session), "authorized operator");
+
+            clock.Advance(TimeSpan.FromMinutes(11));
+            ExpectException<MaintenanceAuthorizationException>(() =>
+                authorizer.DemandAuthorized(session));
+        }
+
+        private static void VerifyAuthenticationThrottling()
+        {
+            var store = new InMemoryCredentialStore();
+            var hasher = new DeterministicPasswordHasher("a sufficiently long password");
+            var clock = new AdjustableClock(new DateTimeOffset(2026, 8, 22, 20, 0, 0, TimeSpan.Zero));
+            var authorizer = new MaintenanceAuthorizer(
+                store,
+                hasher,
+                clock,
+                TimeSpan.FromMinutes(10),
+                TimeSpan.FromSeconds(30),
+                5);
+            authorizer.InitializePassword("a sufficiently long password");
+
+            MaintenanceSession session;
+            for (int attempt = 0; attempt < 5; attempt++)
+            {
+                Equal(false, authorizer.TryAuthenticate("wrong", "operator", out session),
+                    "failed authentication " + (attempt + 1));
+            }
+            Equal(false, authorizer.TryAuthenticate(
+                "a sufficiently long password", "operator", out session), "locked authentication");
+            clock.Advance(TimeSpan.FromSeconds(31));
+            Equal(true, authorizer.TryAuthenticate(
+                "a sufficiently long password", "operator", out session), "post-lockout authentication");
+        }
+
+        private static bool ByteArraysEqual(byte[] left, byte[] right)
+        {
+            if (left.Length != right.Length)
+            {
+                return false;
+            }
+            for (int index = 0; index < left.Length; index++)
+            {
+                if (left[index] != right[index])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private sealed class InMemoryCredentialStore : IMaintenanceCredentialStore
+        {
+            private PasswordCredential _credential;
+
+            public PasswordCredential Get()
+            {
+                return _credential;
+            }
+
+            public void Create(PasswordCredential credential)
+            {
+                if (_credential != null)
+                {
+                    throw new InvalidOperationException("Credential already exists.");
+                }
+                _credential = credential;
+            }
+
+            public void Replace(PasswordCredential credential)
+            {
+                if (_credential == null)
+                {
+                    throw new InvalidOperationException("Credential does not exist.");
+                }
+                _credential = credential;
+            }
+        }
+
+        private sealed class DeterministicPasswordHasher : IPasswordHasher
+        {
+            private readonly string _expectedPassword;
+
+            public DeterministicPasswordHasher(string expectedPassword)
+            {
+                _expectedPassword = expectedPassword;
+            }
+
+            public PasswordCredential Create(string password)
+            {
+                PasswordPolicy.Validate(password);
+                return new PasswordCredential("TEST", 1, new byte[] { 1 }, new byte[] { 2 });
+            }
+
+            public bool Verify(string password, PasswordCredential credential)
+            {
+                return credential != null && string.Equals(
+                    password, _expectedPassword, StringComparison.Ordinal);
+            }
+        }
+
+        private sealed class AdjustableClock : IUtcClock
+        {
+            public AdjustableClock(DateTimeOffset utcNow)
+            {
+                UtcNow = utcNow;
+            }
+
+            public DateTimeOffset UtcNow { get; private set; }
+
+            public void Advance(TimeSpan duration)
+            {
+                UtcNow = UtcNow.Add(duration);
+            }
         }
 
         private static void ExpectException<TException>(Action action)

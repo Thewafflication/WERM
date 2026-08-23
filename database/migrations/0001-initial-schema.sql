@@ -7,6 +7,24 @@ CREATE TABLE WermSchemaVersion
 
 -- WERM-BATCH
 
+CREATE TABLE MaintenanceCredential
+(
+    CredentialId   INTEGER NOT NULL PRIMARY KEY
+        CHECK (CredentialId = 1),
+    Algorithm      TEXT NOT NULL
+        CHECK (length(trim(Algorithm)) > 0),
+    IterationCount INTEGER NOT NULL
+        CHECK (IterationCount > 0),
+    SaltBase64     TEXT NOT NULL
+        CHECK (length(trim(SaltBase64)) > 0),
+    HashBase64     TEXT NOT NULL
+        CHECK (length(trim(HashBase64)) > 0),
+    CreatedUtc     TEXT NOT NULL,
+    ModifiedUtc    TEXT NOT NULL
+);
+
+-- WERM-BATCH
+
 CREATE TABLE Product
 (
     PLU                  TEXT NOT NULL PRIMARY KEY

@@ -159,6 +159,7 @@ function Test-WermSchema {
 
     $expectedTables = @(
         'WermSchemaVersion',
+        'MaintenanceCredential',
         'Product',
         'Customer',
         'CustomerProductPrice',

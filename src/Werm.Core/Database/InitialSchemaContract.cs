@@ -11,6 +11,7 @@ namespace Werm.Core.Database
             new ReadOnlyCollection<string>(new[]
             {
                 "WermSchemaVersion",
+                "MaintenanceCredential",
                 "Product",
                 "Customer",
                 "CustomerProductPrice",

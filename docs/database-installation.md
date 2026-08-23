@@ -30,6 +30,7 @@ boundary.
 Schema version 1 contains:
 
 - `WermSchemaVersion`;
+- `MaintenanceCredential`;
 - `Product`;
 - `Customer`;
 - `CustomerProductPrice`;
