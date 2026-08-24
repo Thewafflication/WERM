@@ -16,6 +16,8 @@ param(
     [Parameter(Mandatory)]
     [string]$X64PackagePath,
 
+    [string[]]$IntegrationResultsPath = @(),
+
     [Parameter(Mandatory)]
     [string]$ManualResultsPath,
 
@@ -92,6 +94,23 @@ foreach ($result in $manual.results) {
         Evidence = $manualResults
     })
 }
+foreach ($integrationPath in $IntegrationResultsPath) {
+    $resolvedIntegration = Resolve-ReportPath $integrationPath
+    if (-not (Test-Path -LiteralPath $resolvedIntegration -PathType Leaf)) {
+        throw "Required integration result is missing: $resolvedIntegration"
+    }
+    $integration = Get-Content -LiteralPath $resolvedIntegration -Raw |
+        ConvertFrom-Json
+    if ([string] $integration.sourceRevision -ne $SourceRevision) {
+        throw 'Integration evidence source revision does not match the report baseline.'
+    }
+    $records.Add([pscustomobject]@{
+        Id = [string] $integration.id
+        Configuration = "$([string] $integration.architecture) integration"
+        Status = [string] $integration.status
+        Evidence = $resolvedIntegration
+    })
+}
 
 $statusNames = @('Pass', 'Fail', 'Blocked', 'Inconclusive', 'Not run', 'Not applicable')
 $counts = [ordered]@{}
@@ -125,8 +144,22 @@ foreach ($file in Get-ChildItem (Join-Path $repositoryRoot 'docs\requirements') 
         Tests = ($testIds -join ', ')
         Status = Get-TestStatus $requirementRecords
         Evidence = if (@($requirementRecords | Where-Object {
+            $_.Configuration -match ' integration$'
+        }).Count -gt 0 -and @($requirementRecords | Where-Object {
             $_.Configuration -eq 'Controlled manual environment'
-        }).Count -gt 0) { 'Automated XML and manual inventory' } else { 'Automated XML' }
+        }).Count -gt 0) {
+            'Automated XML, integration JSON, and manual inventory'
+        } elseif (@($requirementRecords | Where-Object {
+            $_.Configuration -match ' integration$'
+        }).Count -gt 0) {
+            'Automated XML and integration JSON'
+        } elseif (@($requirementRecords | Where-Object {
+            $_.Configuration -eq 'Controlled manual environment'
+        }).Count -gt 0) {
+            'Automated XML and manual inventory'
+        } else {
+            'Automated XML'
+        }
     })
 }
 
@@ -142,7 +175,7 @@ $lines.Add('# WERM 0.1.0 Candidate Test Report')
 $lines.Add('')
 $lines.Add('**Content type:** Generated controlled test report')
 $lines.Add('')
-$lines.Add('**Report status:** Draft — required manual gates are blocked')
+$lines.Add('**Report status:** Draft — physical and GUI gates are blocked')
 $lines.Add('')
 $lines.Add("**Software baseline:** 0.1.0 candidate at ``$SourceRevision``")
 $lines.Add('')
@@ -154,9 +187,9 @@ $lines.Add('**Approval:** Not approved; see the release-readiness record')
 $lines.Add('')
 $lines.Add('## Purpose and Scope')
 $lines.Add('')
-$lines.Add('This report combines the x86/x64 Debug controlled executions, RC package')
-$lines.Add('identity, and explicit manual-result inventory. It does not claim that')
-$lines.Add('blocked ODBC, Waughtal Shell, GUI, Word/printer, or clean-install gates pass.')
+$lines.Add('This report combines x86/x64 Debug executions, real integration JSON,')
+$lines.Add('RC package identity, and explicit manual-result inventory. It does not claim that')
+$lines.Add('blocked GUI and physical Word/printer gates pass.')
 $lines.Add('')
 $lines.Add('## Tested Configuration')
 $lines.Add('')
@@ -167,7 +200,7 @@ $lines.Add("| Architectures | x86 Debug and x64 Debug controlled tests; x86/x64 
 $lines.Add("| Operating system | $([Environment]::OSVersion.VersionString) |")
 $lines.Add('| Toolchain | .NET Framework 4.8 MSBuild; custom controlled runner |')
 $lines.Add("| WPM | $WpmVersion |")
-$lines.Add('| External dependencies | Actual Word, SQLite ODBC, WSH, printer, and stock remain manual preconditions |')
+$lines.Add('| External dependencies | SQLite ODBC 0.99991 and WSH 1.4.0 are pinned integration inputs; Word, printer, and stock remain manual preconditions |')
 $lines.Add('')
 $lines.Add('## Result Summary')
 $lines.Add('')
@@ -199,6 +232,8 @@ foreach ($record in $records) {
         'x86/werm-test-results.xml'
     } elseif ($record.Configuration -eq 'x64 Debug') {
         'x64/werm-test-results.xml'
+    } elseif ($record.Configuration -match ' integration$') {
+        "$($record.Configuration.Split(' ')[0])/$([IO.Path]::GetFileName($record.Evidence))"
     } else {
         [IO.Path]::GetFileName($record.Evidence)
     }
@@ -214,7 +249,8 @@ $lines.Add('')
 $lines.Add('## Conclusion')
 $lines.Add('')
 $lines.Add('The automated candidate behavior passes in both supported architectures,')
-$lines.Add('but the complete 0.1.0 release gate fails until every blocked manual test is')
+$lines.Add('including real ODBC/WSH and clean WPM install/remove paths, but the complete')
+$lines.Add('0.1.0 release gate fails until every blocked manual test is')
 $lines.Add('executed successfully on the approved deployment and physical environment.')
 $lines.Add('')
 $lines.Add('## Evidence Inventory')
@@ -226,6 +262,10 @@ $lines.Add("| x64/werm-test-results.xml | x64 controlled XML | $((Get-FileHash $
 $lines.Add("| $([IO.Path]::GetFileName($x86Package)) | x86 WPM package | $x86Digest | CI artifact / candidate store |")
 $lines.Add("| $([IO.Path]::GetFileName($x64Package)) | x64 WPM package | $x64Digest | CI artifact / candidate store |")
 $lines.Add("| $([IO.Path]::GetFileName($manualResults)) | Manual statuses and rationale | $((Get-FileHash $manualResults -Algorithm SHA256).Hash.ToLowerInvariant()) | Source baseline |")
+foreach ($integrationPath in $IntegrationResultsPath) {
+    $resolvedIntegration = Resolve-ReportPath $integrationPath
+    $lines.Add("| $([IO.Path]::GetFileName($resolvedIntegration)) | Controlled integration result | $((Get-FileHash $resolvedIntegration -Algorithm SHA256).Hash.ToLowerInvariant()) | CI artifact |")
+}
 
 $resolvedOutput = Resolve-ReportPath $OutputPath
 $resolvedJson = Resolve-ReportPath $JsonOutputPath

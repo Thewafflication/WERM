@@ -14,21 +14,23 @@ perform the same version-1 create-or-validate operation from the packaged SQL
 migration. The Waughtal Shell procedure remains the controlled scripting entry
 point and is used for `TC-0025` evidence.
 
-The installer does not download or silently select an ODBC driver. The project
-must approve and baseline the driver, architecture, version, source, license,
-and installer before release use.
+The architecture-specific WPM package includes a source-built SQLite ODBC
+0.99991 driver linked with SQLite 3.43.2. WPM install registers the versioned
+driver in the matching 32-bit or 64-bit ODBC registry view; WPM removal removes
+only that exact registration. The source revisions, input digests, license, and
+built driver digest are retained in the package.
 
-## Waughtal Shell Availability
+## Waughtal Shell Baseline
 
-The current Waughtal Shell implementation has completed its lexer and parser,
-but not language evaluation, Windows process execution, or its standard
-library. It can parse the installer source but cannot execute it yet.
+WERM 0.1.0 baselines Waughtal Shell 1.4.0 in matching x86 and x64 release
+archives. CI verifies the release-asset digest, executes the `.wsh` entry point,
+and retains real ODBC results for both architectures.
 
-The `.wsh` script is written against the accepted Waughtal Shell 1.0 language
-and standard-library contracts. Until an execution-capable Waughtal Shell
-release is available, invoke `Install-WermDatabase.ps1` directly as described
-below. The worker uses `System.Data.Odbc`; it does not bypass the selected ODBC
-boundary.
+WSH 1.4.0 does not yet populate its documented logical `$0` source name and
+does not implement top-level `exit`. The WERM launcher therefore resolves its
+installed worker through `WERM_HOME` and runs its body inside a function so
+`return` preserves the worker status. WPM sets machine `WERM_HOME`; a source
+checkout invocation must set it to the repository root for this baseline.
 
 ## Installed Schema
 
@@ -50,9 +52,11 @@ operations against the two audit tables.
 ## Prerequisites
 
 1. Use a supported Windows workstation.
-2. Install the approved SQLite ODBC driver.
-3. Match the PowerShell or Waughtal Shell process architecture to the ODBC
-   driver architecture.
+2. Install the matching WERM WPM package, which installs the controlled SQLite
+   ODBC driver. A source-tree test may instead use the controlled build and
+   registration scripts under `tools/` from an administrative runner.
+3. Install Waughtal Shell 1.4.0 with the same architecture as WERM and the ODBC
+   driver.
 4. Choose a local database location whose Windows access control permits WERM
    users to perform their authorized operations.
 5. Retain `tools/` and `database/migrations/` together in the repository
@@ -66,22 +70,21 @@ Get-OdbcDriver |
     Select-Object Name, Platform, Version
 ```
 
-No SQLite ODBC driver was registered on the development workstation when these
-instructions were created. Driver installation remains an M1.2 prerequisite.
+The installed driver name is
+`WERM <WERM-version> SQLite3 ODBC Driver 0.99991 (<architecture>)`.
 
 ## Run Through Waughtal Shell
 
-After an execution-capable Waughtal Shell release is available, use its
-architecture-specific executable. From PowerShell, a driver-name invocation is:
+Use the architecture-specific WSH 1.4.0 executable. From an installed package,
+a driver-name invocation is:
 
 ```powershell
 & "$env:WSH_HOME\wsh.exe" `
     --non-interactive `
-    --safe-path `
-    tools\install-werm-database.wsh `
+    "$env:WERM_HOME\tools\install-werm-database.wsh" `
     driver `
     'C:\ProgramData\Waughtal\WERM\Data\werm.db' `
-    'REGISTERED SQLITE ODBC DRIVER NAME'
+    'WERM 0.1.0 SQLite3 ODBC Driver 0.99991 (x64)'
 ```
 
 For a configured User or System DSN, use:
@@ -89,8 +92,7 @@ For a configured User or System DSN, use:
 ```powershell
 & "$env:WSH_HOME\wsh.exe" `
     --non-interactive `
-    --safe-path `
-    tools\install-werm-database.wsh `
+    "$env:WERM_HOME\tools\install-werm-database.wsh" `
     dsn `
     'C:\ProgramData\Waughtal\WERM\Data\werm.db' `
     'WERM'
@@ -100,10 +102,11 @@ The Waughtal Shell script validates its arguments and required files, locates
 `powershell.exe` through structured process resolution, invokes the ODBC
 worker, and returns the worker's exit status.
 
-## Current Bootstrap Invocation
+## Direct Worker Diagnostic
 
-Until Waughtal Shell can execute the orchestration script, run its ODBC worker
-directly:
+The PowerShell worker may be run directly for diagnosis; the supported
+operator entry point remains Waughtal Shell. This still uses `System.Data.Odbc`
+and does not bypass the selected database boundary:
 
 ```powershell
 & "$env:WINDIR\System32\WindowsPowerShell\v1.0\powershell.exe" `
@@ -113,7 +116,7 @@ directly:
     -ExecutionPolicy Bypass `
     -File tools\Install-WermDatabase.ps1 `
     -DatabasePath 'C:\ProgramData\Waughtal\WERM\Data\werm.db' `
-    -DriverName 'REGISTERED SQLITE ODBC DRIVER NAME'
+    -DriverName 'WERM 0.1.0 SQLite3 ODBC Driver 0.99991 (x64)'
 ```
 
 For a 32-bit ODBC driver on 64-bit Windows, use the 32-bit host:
@@ -182,6 +185,8 @@ this design.
 
 - [Waughtal Shell installer](../tools/install-werm-database.wsh)
 - [ODBC worker](../tools/Install-WermDatabase.ps1)
+- [SQLite ODBC reproducible build](../tools/Build-SqliteOdbc.ps1)
+- [SQLite ODBC registration](../tools/Install-SqliteOdbcDriver.ps1)
 - [Initial schema migration](../database/migrations/0001-initial-schema.sql)
 - [Database design](database-design.md)
 - [ODBC architecture decision](adr-0006-access-sqlite-through-odbc.md)
@@ -190,5 +195,4 @@ this design.
 
 - [Waughtal Shell language specification](https://github.com/Thewafflication/wsh/blob/master/docs/specification/language.md)
 - [Waughtal Shell standard library](https://github.com/Thewafflication/wsh/blob/master/docs/specification/standard-library.md)
-- [Microsoft OLE DB Provider for ODBC](https://learn.microsoft.com/en-us/office/client-developer/access/desktop-database-reference/microsoft-ole-db-provider-for-odbc)
-- [ADO Connection Open method](https://learn.microsoft.com/en-us/office/client-developer/access/desktop-database-reference/open-method-ado-connection)
+- [Third-party notices](third-party-notices.md)

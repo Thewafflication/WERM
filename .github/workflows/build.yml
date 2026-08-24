@@ -58,6 +58,47 @@ jobs:
           -Configuration Debug
           -NoBuild
 
+      - name: Build pinned SQLite ODBC runtime
+        shell: pwsh
+        run: >-
+          ./tools/Build-SqliteOdbc.ps1
+          -Architecture '${{ matrix.architecture }}'
+
+      - name: Bootstrap pinned Waughtal Shell
+        shell: pwsh
+        run: |
+          $architecture = '${{ matrix.architecture }}'
+          $archive = Join-Path $env:RUNNER_TEMP "wsh-$architecture-1.4.0.zip"
+          $destination = Join-Path $env:RUNNER_TEMP "wsh-$architecture-1.4.0"
+          $expected = if ($architecture -eq 'x64') {
+            '0c8a80edf4cd16b89e92fa41818abab70e6e22a1dae9d25c5e0384a386314f78'
+          } else {
+            'c5c1732513548ca960a2f92b6d92204f646fb3fec8bfcbf31bb7d36cec043da4'
+          }
+          Invoke-WebRequest -UseBasicParsing `
+            -Uri "https://github.com/Thewafflication/wsh/releases/download/1.4.0/wsh-$architecture-1.4.0.zip" `
+            -OutFile $archive
+          $actual = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actual -ne $expected) {
+            throw "WSH archive digest mismatch. Expected $expected; received $actual."
+          }
+          Expand-Archive -LiteralPath $archive -DestinationPath $destination
+          $wsh = Get-ChildItem -LiteralPath $destination -Recurse `
+            -Filter wsh.exe -File | Select-Object -First 1
+          if (-not $wsh) {
+            throw 'WSH release archive did not contain wsh.exe.'
+          }
+          "WSH_EXE=$($wsh.FullName)" | Out-File `
+            -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          & $wsh.FullName --version
+
+      - name: Run real SQLite ODBC and WSH integration
+        shell: pwsh
+        run: >-
+          ./tools/Test-WermSqliteOdbc.ps1
+          -Architecture '${{ matrix.architecture }}'
+          -WshPath $env:WSH_EXE
+
       - name: Build Release
         shell: pwsh
         run: >-
@@ -70,13 +111,13 @@ jobs:
       - name: Bootstrap pinned WPM
         shell: pwsh
         run: |
-          $archive = Join-Path $env:RUNNER_TEMP 'wpm-x64-1.0.16.zip'
-          $destination = Join-Path $env:RUNNER_TEMP 'wpm-1.0.16'
+          $archive = Join-Path $env:RUNNER_TEMP 'wpm-x64-1.0.17.zip'
+          $destination = Join-Path $env:RUNNER_TEMP 'wpm-1.0.17'
           Invoke-WebRequest -UseBasicParsing `
-            -Uri 'https://github.com/Thewafflication/wpm/releases/download/1.0.16/wpm-x64-1.0.16.zip' `
+            -Uri 'https://github.com/Thewafflication/wpm/releases/download/1.0.17/wpm-x64-1.0.17.zip' `
             -OutFile $archive
           $actual = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
-          $expected = '6553898f4e0bfbf171f601c16d314259fd28f59e7398d58a0549208b011c6544'
+          $expected = '7ad65ab64f62a26a638356fa475c0584d44d81d7bf6a8e77c298aa4f92d9ccaa'
           if ($actual -ne $expected) {
             throw "WPM archive digest mismatch. Expected $expected; received $actual."
           }
@@ -103,6 +144,15 @@ jobs:
           -Version '0.1.0-ci.${{ github.run_number }}'
           -WpmPath $env:WPM_EXE
 
+      - name: Run clean WPM install, launch, and removal
+        shell: pwsh
+        run: >-
+          ./tools/Test-WermWpmInstall.ps1
+          -Architecture '${{ matrix.architecture }}'
+          -Version '0.1.0-ci.${{ github.run_number }}'
+          -PackagePath 'out/packages/werm-${{ matrix.architecture }}-0.1.0-ci.${{ github.run_number }}.zip'
+          -WpmPath $env:WPM_EXE
+
       - name: Upload controlled evidence and package
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
@@ -119,6 +169,8 @@ jobs:
             out/bin/Werm.Printing/${{ matrix.architecture }}/Debug/*
             out/bin/Werm.Tests/${{ matrix.architecture }}/Debug/*
             out/test-results/${{ matrix.architecture }}/Debug/werm-test-results.xml
+            out/integration-results/${{ matrix.architecture }}/*
+            out/dependencies/sqlite-odbc/${{ matrix.architecture }}/*
             out/packages/werm-${{ matrix.architecture }}-0.1.0-ci.${{ github.run_number }}.zip
 
   release-evidence:
@@ -154,14 +206,20 @@ jobs:
             -Filter 'werm-x86-*.zip' | Select-Object -First 1
           $x64Package = Get-ChildItem downloaded-evidence -Recurse `
             -Filter 'werm-x64-*.zip' | Select-Object -First 1
+          $integrationResults = @(Get-ChildItem downloaded-evidence -Recurse `
+            -Include 'tc-0025.json','tc-0028.json' -File)
           foreach ($input in @($x86Result, $x64Result, $x86Package, $x64Package)) {
             if (-not $input) {
               throw 'The architecture evidence set is incomplete.'
             }
           }
+          if ($integrationResults.Count -ne 4) {
+            throw "Expected four architecture integration results; found $($integrationResults.Count)."
+          }
 
           ./tools/Test-WermTraceability.ps1 `
             -ResultsPath @($x86Result.FullName, $x64Result.FullName) `
+            -IntegrationResultsPath $integrationResults.FullName `
             -ManualResultsPath 'docs/releases/0.1.0-manual-results.json'
           ./tools/New-WermTestReport.ps1 `
             -SourceRevision $env:GITHUB_SHA `
@@ -169,8 +227,9 @@ jobs:
             -X64ResultsPath $x64Result.FullName `
             -X86PackagePath $x86Package.FullName `
             -X64PackagePath $x64Package.FullName `
+            -IntegrationResultsPath $integrationResults.FullName `
             -ManualResultsPath 'docs/releases/0.1.0-manual-results.json' `
-            -WpmVersion '1.0.16 (CI pinned)'
+            -WpmVersion '1.0.17 (CI pinned)'
 
       - name: Upload aggregate release evidence
         if: always()

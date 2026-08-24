@@ -5,6 +5,8 @@ param(
     [Parameter(Mandatory)]
     [string[]]$ResultsPath,
 
+    [string[]]$IntegrationResultsPath = @(),
+
     [Parameter(Mandatory)]
     [string]$ManualResultsPath,
 
@@ -164,6 +166,43 @@ foreach ($path in $ResultsPath) {
             Evidence = $resolved
         })
     }
+}
+
+foreach ($path in $IntegrationResultsPath) {
+    $resolved = Resolve-WermPath $path $root
+    if (-not (Test-Path -LiteralPath $resolved -PathType Leaf)) {
+        $errors.Add("Missing integration result: $resolved")
+        continue
+    }
+    $integration = Get-Content -LiteralPath $resolved -Raw |
+        ConvertFrom-Json
+    $id = [string] $integration.id
+    $sourceRevision = [string] $integration.sourceRevision
+    $sourceRevisions += $sourceRevision
+    $automatedIds += $id
+    if (-not $tests.ContainsKey($id)) {
+        $errors.Add("Integration result has no controlled specification: $id")
+        continue
+    }
+    if (-not $tests[$id].IsAutomated) {
+        $errors.Add("Integration result is not declared automated: $id")
+    }
+    $actualReferences = @($integration.references |
+        ForEach-Object { [string] $_ } | Sort-Object -Unique)
+    $expectedReferences = @($tests[$id].References | Sort-Object -Unique)
+    if (($actualReferences -join ',') -ne ($expectedReferences -join ',')) {
+        $errors.Add("$id reference metadata differs between integration result and specification.")
+    }
+    $status = [string] $integration.status
+    if ($status -notin @('Pass', 'Fail')) {
+        $errors.Add("Integration result has an invalid status: $id")
+    }
+    $resultRecords.Add([pscustomobject]@{
+        Id = $id
+        Configuration = "$([string] $integration.architecture) integration"
+        Status = $status
+        Evidence = $resolved
+    })
 }
 
 if (@($sourceRevisions | Sort-Object -Unique).Count -ne 1) {

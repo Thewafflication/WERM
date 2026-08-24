@@ -36,6 +36,18 @@ if (-not (Test-Path -LiteralPath $executable -PathType Leaf)) {
     throw "Build WERM before packaging it. Missing: $executable"
 }
 
+$dependencyBuilder = Join-Path $repositoryRoot 'tools\Build-SqliteOdbc.ps1'
+& $dependencyBuilder -Architecture $Architecture
+if ($LASTEXITCODE -ne 0) {
+    throw "SQLite ODBC dependency build failed for $Architecture."
+}
+$driverSourceDirectory = Join-Path $repositoryRoot `
+    "out\dependencies\sqlite-odbc\$Architecture"
+$driverSourcePath = Join-Path $driverSourceDirectory 'sqlite3odbc.dll'
+if (-not (Test-Path -LiteralPath $driverSourcePath -PathType Leaf)) {
+    throw "SQLite ODBC dependency output is missing: $driverSourcePath"
+}
+
 $staging = Join-Path $repositoryRoot `
     "out\package-stage\$Architecture-$Configuration"
 $payload = Join-Path $staging 'payload'
@@ -54,6 +66,7 @@ New-Item -ItemType Directory -Force -Path @(
     $metadataDirectory,
     $resolvedOutputDirectory,
     (Join-Path $payload 'database\migrations'),
+    (Join-Path $payload 'drivers'),
     (Join-Path $payload 'tools'),
     (Join-Path $payload 'docs')
 ) | Out-Null
@@ -61,17 +74,35 @@ New-Item -ItemType Directory -Force -Path @(
 $applicationFiles = Get-ChildItem -LiteralPath $applicationDirectory -File |
     Where-Object { $_.Extension -in '.exe', '.config', '.dll', '.pdb' }
 Copy-Item -LiteralPath $applicationFiles.FullName -Destination $payload
+$driverName = "WERM $Version SQLite3 ODBC Driver 0.99991 ($Architecture)"
+$applicationConfigPath = Join-Path $payload 'Werm.exe.config'
+[xml] $applicationConfig = Get-Content -Raw -LiteralPath $applicationConfigPath
+$driverSetting = $applicationConfig.configuration.appSettings.add |
+    Where-Object { $_.key -eq 'OdbcDriverName' } |
+    Select-Object -First 1
+if ($null -eq $driverSetting) {
+    throw 'Werm.exe.config does not contain OdbcDriverName.'
+}
+$driverSetting.value = $driverName
+$applicationConfig.Save($applicationConfigPath)
 Copy-Item -Path (Join-Path $repositoryRoot 'database\migrations\*.sql') `
     -Destination (Join-Path $payload 'database\migrations')
+$driverFiles = Get-ChildItem -LiteralPath $driverSourceDirectory -File
+Copy-Item -LiteralPath $driverFiles.FullName `
+    -Destination (Join-Path $payload 'drivers')
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'tools\install-werm-database.wsh') `
     -Destination (Join-Path $payload 'tools')
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'tools\Install-WermDatabase.ps1') `
+    -Destination (Join-Path $payload 'tools')
+Copy-Item -LiteralPath (Join-Path $repositoryRoot 'tools\Install-SqliteOdbcDriver.ps1') `
     -Destination (Join-Path $payload 'tools')
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'docs\database-installation.md') `
     -Destination (Join-Path $payload 'docs')
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'docs\word-template-contract.md') `
     -Destination (Join-Path $payload 'docs')
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'docs\workstation-configuration.md') `
+    -Destination (Join-Path $payload 'docs')
+Copy-Item -LiteralPath (Join-Path $repositoryRoot 'docs\third-party-notices.md') `
     -Destination (Join-Path $payload 'docs')
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'docs\package-readme.md') `
     -Destination (Join-Path $payload 'README.md')
@@ -94,7 +125,7 @@ $metadata = @(
     'maintainer=Jordan Waughtal',
     'homepage=https://github.com/Thewafflication/WERM',
     'repository=https://github.com/Thewafflication/WERM',
-    'license=',
+    'license=GPL-3.0-or-later',
     "source-revision=$sourceRevision"
 )
 Set-Content -LiteralPath (Join-Path $metadataDirectory 'package.txt') `
@@ -109,6 +140,7 @@ $installScript = @(
     ('set "WERM_DEST={0}"' -f $installDirectory),
     'if not exist "%WERM_DEST%" mkdir "%WERM_DEST%" || exit /b 1',
     'xcopy "%~dp0..\payload\*" "%WERM_DEST%\" /E /I /Q /Y >nul || exit /b 1',
+    ('powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%WERM_DEST%\tools\Install-SqliteOdbcDriver.ps1" -Action Install -Architecture {0} -DriverPath "%WERM_DEST%\drivers\sqlite3odbc.dll" -WermVersion {1} >nul || exit /b 1' -f $Architecture, $Version),
     'reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v WERM_HOME /t REG_EXPAND_SZ /d "%WERM_DEST%" /f >nul || exit /b 1',
     'exit /b 0'
 )
@@ -116,6 +148,7 @@ $removeScript = @(
     '@echo off',
     'setlocal',
     ('set "WERM_DEST={0}"' -f $installDirectory),
+    ('if exist "%WERM_DEST%\drivers\sqlite3odbc.dll" powershell.exe -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%WERM_DEST%\tools\Install-SqliteOdbcDriver.ps1" -Action Remove -Architecture {0} -DriverPath "%WERM_DEST%\drivers\sqlite3odbc.dll" -WermVersion {1} >nul || exit /b 1' -f $Architecture, $Version),
     'if exist "%WERM_DEST%" rmdir /S /Q "%WERM_DEST%" || exit /b 1',
     'set "WERM_CURRENT="',
     'for /f "tokens=2,*" %%A in (''reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v WERM_HOME 2^>nul'') do set "WERM_CURRENT=%%B"',
@@ -151,8 +184,13 @@ try {
         'payload/Werm.exe',
         'payload/Werm.Data.dll',
         'payload/Werm.Printing.dll',
+        'payload/drivers/sqlite3odbc.dll',
+        'payload/drivers/sqliteodbc-license.terms',
+        'payload/drivers/dependency-manifest.json',
         'payload/database/migrations/0001-initial-schema.sql',
         'payload/tools/install-werm-database.wsh',
+        'payload/tools/Install-SqliteOdbcDriver.ps1',
+        'payload/docs/third-party-notices.md',
         'payload/docs/word-template-contract.md',
         'payload/docs/workstation-configuration.md',
         'payload/README.md',

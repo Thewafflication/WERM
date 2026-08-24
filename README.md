@@ -8,8 +8,9 @@ The first milestone deliberately excludes barcode and PDF behavior.
 
 Engineering candidates currently build and package successfully, but 0.1.0 is
 not approved for release. The [readiness record](docs/releases/0.1.0-readiness.md)
-identifies the blocked ODBC/WSH, GUI, physical Word/printer, clean-install, and
-process-review gates.
+identifies the blocked interactive GUI, physical Word/label-printer, and
+process-review gates. Real x86/x64 ODBC/WSH and clean WPM install/remove paths
+are controlled in CI.
 
 ## Build and test
 
@@ -27,6 +28,11 @@ Build a WPM package after a Release build:
 .\tools\Build-WpmPackage.ps1 -Architecture x64 -Configuration Release `
     -Version 0.1.0-dev
 ```
+
+Packaging builds the pinned x86 or x64 SQLite ODBC runtime from digest-verified
+source, records its provenance, and includes versioned install/remove
+registration scripts. Waughtal Shell 1.4.0 is the controlled database-installer
+orchestration baseline.
 
 Project decisions, requirements, installation instructions, and the milestone
 plan are indexed in [`docs/README.md`](docs/README.md).

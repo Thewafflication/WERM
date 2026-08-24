@@ -4,7 +4,7 @@
 
 **Requirements:** `REQ-0002`, `REQ-0019`, `REQ-0020`, `REQ-0021`
 
-**Level:** Manual system and integration test
+**Level:** Automated system and integration test
 
 **Priority:** Required release gate
 
@@ -14,18 +14,22 @@ and `tools/install-werm-database.wsh`
 **Technique:** Use-case testing, error guessing, and state-transition coverage
 for missing, current, unrecognized, newer, and failed-migration databases
 
+**Execution contract:** `.github/workflows/build.yml` invokes
+`tools/Test-WermSqliteOdbc.ps1` once for each architecture and retains
+`out/integration-results/<architecture>/tc-0025.json` plus the passing database.
+
 ## Purpose
 
 Verify real x86 and x64 SQLite ODBC connections and the operator-facing
-Waughtal Shell installer against disposable database states. This cannot be
-reliably automated on the general GitHub runner because WERM does not yet own a
-baselined third-party ODBC/WSH deployment.
+Waughtal Shell installer against disposable database states. WERM owns pinned,
+digest-verified source/build inputs for SQLite ODBC 0.99991 and pinned Waughtal
+Shell 1.4.0 release assets, so the ephemeral GitHub runner is controlled.
 
 ## Preconditions, environment, and assumptions
 
-- A controlled Windows workstation or VM records its OS version and bitness.
-- The approved execution-capable Waughtal Shell and approved SQLite ODBC driver
-  are installed with exact versions and provenance recorded.
+- The ephemeral Windows runner records its OS and target architecture.
+- Waughtal Shell 1.4.0 and the source-built SQLite ODBC 0.99991 driver have
+  exact versions, revisions, and SHA-256 digests recorded.
 - Driver/DSN bitness matches each x86 or x64 WERM test configuration.
 - The operator has a disposable directory and does not select production data.
 
@@ -46,8 +50,8 @@ migration. Record the exact WSH command line without credentials.
    four append-only audit triggers through the real ODBC connection.
 4. Run the WSH command again against the current database and confirm it is
    recognized without replacement or data loss.
-5. Repeat the installer against the unrecognized, newer, and failing-migration
-   disposable inputs; retain each distinct result.
+5. Repeat the installer against the unrecognized, newer, and deliberately
+   failing-migration disposable inputs; retain each distinct result.
 6. Repeat applicable creation and current-database cases for x86 and x64.
 
 ## Expected results and pass criteria
@@ -61,5 +65,6 @@ with matching driver bitness.
 ## Postconditions and cleanup
 
 Retain commands, logs, digests, version inventory, and the disposable passing
-database as controlled evidence. Remove all other disposable inputs. Production
-files and machine DSNs remain unchanged.
+database as controlled CI evidence. The test removes its architecture-specific
+temporary machine driver registration in `finally`; it creates no DSN and does
+not access production data.

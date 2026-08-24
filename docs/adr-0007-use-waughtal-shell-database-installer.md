@@ -12,9 +12,9 @@ WERM version 0.1.0 needs a controlled entry point for creating and validating
 its SQLite database through ODBC. The stakeholder selected Waughtal Shell
 (`wsh`) as the installation scripting language.
 
-The current Waughtal Shell implementation can parse the accepted language but
-does not yet evaluate commands or launch Windows processes. Its accepted 1.0
-standard library also has no database API.
+Waughtal Shell 1.4.0 evaluates the accepted language, launches Windows
+processes, and supplies the required path, filesystem, and structured process
+library. It has no ODBC database API, so a narrow worker remains required.
 
 ## Decision Drivers
 
@@ -37,48 +37,44 @@ installer. It will validate its inputs and files, locate Windows PowerShell
 through Waughtal Shell's structured process interface, run the ODBC worker,
 and preserve the worker's exit status.
 
-`tools/Install-WermDatabase.ps1` is a temporary bootstrap worker that owns the
+`tools/Install-WermDatabase.ps1` is a narrow worker that owns the
 `System.Data.Odbc` operations until Waughtal Shell provides a suitable database
-interface or WERM provides a dedicated installer executable. The worker may be
-invoked directly while the Waughtal Shell evaluator and process facilities are
-unavailable.
+interface or WERM provides a dedicated installer executable. Direct invocation
+is a documented diagnostic path, not the supported operator contract.
+
+For WSH 1.4.0 compatibility, the launcher uses installed `WERM_HOME` rather
+than its currently unpopulated `$0` value and evaluates inside a function so
+`return` propagates the worker exit status. CI executes that exact path.
 
 Windows Script Host is not part of the selected installation design.
 
 ## Rationale
 
-The design makes Waughtal Shell the stable operator contract without claiming
-capabilities that its current executable does not have. A narrow worker keeps
-all schema work behind ODBC and provides an immediately testable bootstrap
-path. The versioned SQL migration remains independent of both orchestration
-languages.
+The design makes Waughtal Shell the stable operator contract. A narrow worker
+keeps all schema work behind ODBC, while the versioned SQL migration remains
+independent of both orchestration languages.
 
 ## Consequences
 
 ### Positive
 
 - The requested Waughtal Shell entry point is explicit and reviewable.
-- Current development can exercise the ODBC migration before WSH execution is
-  available.
+- The complete WSH-to-ODBC path is exercised for x86 and x64.
 - The same SQL migration is used by both invocation paths.
 - WSH structured arguments avoid an intermediate command-line reparse.
 
 ### Negative
 
-- The complete Waughtal Shell path cannot run on the current WSH baseline.
 - Version 0.1.0 temporarily carries a PowerShell bootstrap dependency.
 - The WSH process, PowerShell worker, and ODBC driver architectures must match.
-- Release verification depends on an execution-capable Waughtal Shell build.
+- Release verification depends on the pinned Waughtal Shell 1.4.0 assets.
 
 ### Follow-up
 
-- Baseline a Waughtal Shell version with evaluation, process, path, and
-  filesystem support.
-- Verify the `.wsh` script against that exact WSH version and architecture.
-- Select and verify the SQLite ODBC driver.
+- Re-evaluate the `$0` and top-level `exit` compatibility workarounds after a
+  later WSH release implements those accepted contracts.
 - Decide whether a WERM database-installer executable should replace the
   temporary PowerShell worker.
-- Remove the direct bootstrap instructions when the WSH path is supported.
 
 ## References
 

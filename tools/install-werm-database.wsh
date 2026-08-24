@@ -14,49 +14,60 @@ fn usage {
     echo '  install-werm-database.wsh dsn database-path data-source-name' >[1=2]
 }
 
-if (! ~ $#* 3) {
-    usage
-    exit 2
+fn main {
+    if (! ~ $#* 3) {
+        usage
+        return 2
+    }
+
+    connection_mode=$1
+    database_path=$2
+    connection_name=$3
+
+    switch ($connection_mode) {
+    case driver
+        connection_option=-DriverName
+    case dsn
+        connection_option=-Dsn
+    case *
+        usage
+        return 2
+    }
+
+    if (~ $#WERM_HOME 1) {
+        path::join --into worker_path $WERM_HOME tools Install-WermDatabase.ps1 || {
+            echo 'ERROR: Could not resolve the installed ODBC worker path.' >[1=2]
+            return 5
+        }
+    } if not {
+        path::directory --into tools_directory $0 || {
+            echo 'ERROR: Could not resolve the installer directory.' >[1=2]
+            return 5
+        }
+
+        path::join --into worker_path $tools_directory Install-WermDatabase.ps1 || {
+            echo 'ERROR: Could not resolve the ODBC worker path.' >[1=2]
+            return 5
+        }
+    }
+
+    if (! fs::exists $worker_path) {
+        echo 'ERROR: The ODBC worker is missing:' $worker_path >[1=2]
+        return 5
+    }
+
+    process::which --into powershell_path powershell.exe || {
+        echo 'ERROR: Windows PowerShell is unavailable.' >[1=2]
+        return 7
+    }
+
+    echo 'Starting the WERM database installer through Waughtal Shell...'
+
+    powershell_arguments=(-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $worker_path -DatabasePath $database_path $connection_option $connection_name)
+
+    process::run --timeout 120000 -- $powershell_path $powershell_arguments
+
+    return $status(1)
 }
 
-connection_mode=$1
-database_path=$2
-connection_name=$3
-
-switch ($connection_mode) {
-case driver
-    connection_option=-DriverName
-case dsn
-    connection_option=-Dsn
-case *
-    usage
-    exit 2
-}
-
-path::directory --into tools_directory $0 || {
-    echo 'ERROR: Could not resolve the installer directory.' >[1=2]
-    exit 5
-}
-
-path::join --into worker_path $tools_directory Install-WermDatabase.ps1 || {
-    echo 'ERROR: Could not resolve the ODBC worker path.' >[1=2]
-    exit 5
-}
-
-if (! fs::exists $worker_path) {
-    echo 'ERROR: The ODBC worker is missing:' $worker_path >[1=2]
-    exit 5
-}
-
-process::which --into powershell_path powershell.exe || {
-    echo 'ERROR: Windows PowerShell is unavailable.' >[1=2]
-    exit 7
-}
-
-echo 'Starting the WERM database installer through Waughtal Shell...'
-
-powershell_arguments=(-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $worker_path -DatabasePath $database_path $connection_option $connection_name)
-
-process::run --timeout 120000 -- $powershell_path $powershell_arguments
-
-exit $status(1)
+main $*

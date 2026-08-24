@@ -15,8 +15,9 @@ Before launching WERM, read:
   required content-control tags.
 
 Run `Werm.exe`, then use **Database configuration** to choose the SQLite file
-and ODBC driver or DSN. The screen can create a missing database with the WERM
-schema, test it, and save the choices for the current Windows user. Printing remains
+and the package-installed ODBC driver or an approved DSN. The packaged driver
+is the default. The screen can create a missing database with the WERM schema,
+test it, and save the choices for the current Windows user. Printing remains
 available while maintenance is locked. Product, customer, and price Save
 buttons require an initialized password and authenticated operator session.
 Product audit history is read-only in the Product area.
@@ -28,3 +29,7 @@ the screen.
 The package identity and source revision are in `.wpm/package.txt`. A CI or
 engineering-candidate version is not an approved release unless accompanied by
 the project's passing readiness and release records.
+
+Driver source identity, input and output digests, and license terms are under
+`drivers/` and `docs/third-party-notices.md`. WPM removal unregisters only the
+driver name and path owned by that package version.

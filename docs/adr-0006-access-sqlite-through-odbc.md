@@ -31,18 +31,19 @@ WERM will access SQLite through the .NET Framework `System.Data.Odbc` API and
 an installed SQLite ODBC driver. Application data-access code will depend on
 ODBC abstractions rather than a SQLite-specific ADO.NET provider.
 
-The exact driver, driver version, application architecture, installation
-method, and data-source-name (DSN) model remain open until the M1.2
-compatibility spike. Both a configured DSN and a DSN-less connection string
-remain candidates.
+WERM baselines the SQLite ODBC Driver 0.99991 source at revision
+`539531394dcedf415de574daa95367a93f5eb41d`, linked with SQLite 3.43.2. The
+reproducible MSVC build verifies both source-archive digests and records the
+built driver digest. Each x86 or x64 WPM package registers its matching driver
+under a versioned WERM name. WERM uses a DSN-less driver-name connection by
+default and continues to allow an explicitly configured DSN.
 
 ## Rationale
 
 The decision satisfies the stakeholder's requested database boundary while
-using the ODBC support available to .NET Framework applications. Deferring the
-exact driver and DSN model permits verification of deployment, bitness,
-transactions, parameter handling, and SQLite behavior before they become part
-of the release baseline.
+using the ODBC support available to .NET Framework applications. Owning the
+source build and versioned registration makes deployment and bitness
+reproducible without silently trusting an unversioned workstation driver.
 
 ## Consequences
 
@@ -55,7 +56,7 @@ of the release baseline.
 
 ### Negative
 
-- Every workstation requires a compatible SQLite ODBC driver.
+- Every workstation requires the package-installed SQLite ODBC registration.
 - The application and driver architectures must be compatible.
 - ODBC SQL parameters are positional, so command parameters must be added in
   the same order as their `?` placeholders.
@@ -63,15 +64,15 @@ of the release baseline.
   mapping, and concurrency behavior require driver-specific verification.
 - Driver installation and configuration become release and support concerns.
 
-### Follow-up
+### Verification
 
-- Select and baseline the SQLite ODBC driver and its license.
-- Decide the supported application architecture and matching driver bitness.
-- Select a configured DSN or DSN-less connection model.
-- Define secure storage and validation of the database connection settings.
-- Verify foreign keys, transactions, migrations, parameter binding, Unicode,
-  timestamps, large ingredients statements, locking, and error behavior.
-- Document driver installation, repair, upgrade, and removal.
+- `TC-0025` builds and registers both driver architectures on disposable
+  runners and exercises missing, current, unrecognized, newer, and failed
+  migration states through Waughtal Shell and `System.Data.Odbc`.
+- `TC-0028` verifies package installation, driver registration, launch, and
+  removal on an administrative ephemeral Windows runner.
+- Driver license and provenance are recorded in
+  [third-party notices](third-party-notices.md).
 
 ## References
 

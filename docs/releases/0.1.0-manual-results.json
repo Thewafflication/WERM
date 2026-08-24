@@ -1,32 +1,20 @@
 {
-  "release": "0.1.0-rc.3",
-  "implementationSourceRevision": "288b7b2199f5bec6f16b997c9ddceb86aa8a09d0",
-  "recordedAtUtc": "2026-08-23T03:10:00Z",
-  "environment": "Development workstation prerequisite inspection",
+  "release": "0.1.0",
+  "implementationSourceRevision": "master release candidate",
+  "recordedAtUtc": "2026-08-24T04:30:00Z",
+  "environment": "Development workstation physical and interactive prerequisite inspection",
   "results": [
-    {
-      "id": "TC-0025",
-      "status": "Blocked",
-      "rationale": "No approved SQLite ODBC driver inventory was available and wsh.exe was not found on PATH.",
-      "evidence": "PowerShell prerequisite inspection found no SQLite-named ODBC registration and no wsh.exe on PATH; WPM 1.0.17 was present."
-    },
     {
       "id": "TC-0026",
       "status": "Blocked",
-      "rationale": "The real ODBC database precondition from TC-0025 is unmet.",
-      "evidence": "No production or substitute provider was used."
+      "rationale": "No controlled interactive desktop execution and screenshot record was available for the complete GUI workflow.",
+      "evidence": "The GUI implementation and automated authorization/data boundaries are present; operator-visible state transitions were not executed."
     },
     {
       "id": "TC-0027",
       "status": "Blocked",
-      "rationale": "Word is registered, but no controlled template, label-printer inventory, approved driver, or stock was available; printer inventory access was denied.",
-      "evidence": "Word.Application ProgID inspection and Windows printer inventory attempt."
-    },
-    {
-      "id": "TC-0028",
-      "status": "Blocked",
-      "rationale": "A clean administrative Windows VM was not available for machine-wide WPM installation and removal.",
-      "evidence": "Archive structure and metadata were validated locally; machine install was not attempted."
+      "rationale": "Word 16 x64 is available, but the workstation has no controlled physical label printer, approved label stock, or reviewed nine-tag label template.",
+      "evidence": "Word COM version 16.0.20326 was inventoried; available printers were OneNote, Microsoft Print to PDF, Epson ET-15000 IPP, and no dedicated label printer."
     }
   ]
 }
