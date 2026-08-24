@@ -8,6 +8,9 @@ param(
 
     [string]$MSBuildPath,
 
+    [ValidatePattern('^[0-9]+\.[0-9]+\.[0-9]+$')]
+    [string]$Version = '0.1.0',
+
     [switch]$Clean
 )
 
@@ -37,6 +40,11 @@ if ([string]::IsNullOrWhiteSpace($MSBuildPath) -or
 }
 
 $solution = Join-Path $repositoryRoot 'Werm.sln'
+$versionResourceBuilder = Join-Path $PSScriptRoot 'New-WermVersionResources.ps1'
+& $versionResourceBuilder -Configuration $Configuration -Version $Version
+if ($LASTEXITCODE -ne 0) {
+    throw "WERM $Configuration version-resource generation failed."
+}
 $target = if ($Clean) { 'Rebuild' } else { 'Build' }
 $arguments = @(
     $solution,

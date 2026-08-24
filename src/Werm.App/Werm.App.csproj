@@ -32,6 +32,9 @@
     </Compile>
     <Compile Include="ApplicationServices.cs" />
     <Compile Include="OdbcRegistryCatalog.cs" />
+    <Compile Include="..\Werm.VersionInfo.cs">
+      <Link>Properties\Werm.VersionInfo.cs</Link>
+    </Compile>
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>

@@ -9,6 +9,9 @@
     <Platforms>x86;x64</Platforms>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\Werm.VersionInfo.cs">
+      <Link>Properties\Werm.VersionInfo.cs</Link>
+    </Compile>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
   </ItemGroup>

@@ -58,6 +58,14 @@ jobs:
           -Configuration Debug
           -NoBuild
 
+      - name: Verify Debug Windows version resources
+        shell: pwsh
+        run: >-
+          ./tools/Test-WermVersionResources.ps1
+          -Architecture '${{ matrix.architecture }}'
+          -Configuration Debug
+          -Version '0.1.0'
+
       - name: Build pinned SQLite ODBC runtime
         shell: pwsh
         run: >-
@@ -107,6 +115,14 @@ jobs:
           -Configuration Release
           -MSBuildPath $env:MSBUILD_PATH
           -Clean
+
+      - name: Verify Release Windows version resources
+        shell: pwsh
+        run: >-
+          ./tools/Test-WermVersionResources.ps1
+          -Architecture '${{ matrix.architecture }}'
+          -Configuration Release
+          -Version '0.1.0'
 
       - name: Bootstrap pinned WPM
         shell: pwsh
@@ -169,6 +185,8 @@ jobs:
             out/bin/Werm.Printing/${{ matrix.architecture }}/Debug/*
             out/bin/Werm.Tests/${{ matrix.architecture }}/Debug/*
             out/test-results/${{ matrix.architecture }}/Debug/werm-test-results.xml
+            out/release-evidence/version-resources/${{ matrix.architecture }}-debug.json
+            out/release-evidence/version-resources/${{ matrix.architecture }}-release.json
             out/integration-results/${{ matrix.architecture }}/*
             out/dependencies/sqlite-odbc/${{ matrix.architecture }}/*
             out/packages/werm-${{ matrix.architecture }}-0.1.0-ci.${{ github.run_number }}.zip

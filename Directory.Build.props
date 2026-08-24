@@ -13,5 +13,6 @@
     <OutputPath>$(BaseOutputPath)$(Platform)\$(Configuration)\</OutputPath>
     <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)out\obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Platform)\$(Configuration)\</IntermediateOutputPath>
+    <Win32Resource>$(MSBuildThisFileDirectory)out\version-resources\$(Configuration)\$(MSBuildProjectName).res</Win32Resource>
   </PropertyGroup>
 </Project>
