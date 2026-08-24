@@ -86,7 +86,7 @@ function Invoke-WermArchitecturePowerShell {
 function Invoke-WermInstallerCase {
     param(
         [Parameter(Mandatory)]
-        [string] $Home,
+        [string] $InstallRoot,
 
         [Parameter(Mandatory)]
         [string] $DatabasePath,
@@ -100,7 +100,7 @@ function Invoke-WermInstallerCase {
 
     $priorHome = $env:WERM_HOME
     try {
-        $env:WERM_HOME = $Home
+        $env:WERM_HOME = $InstallRoot
         $started = [DateTimeOffset]::UtcNow
         $output = & $WshPath $installerPath driver $DatabasePath `
             $script:driverName 2>&1
@@ -148,7 +148,7 @@ $script:driverName = [string]($script:driverName | Select-Object -Last 1)
 $cases = New-Object 'System.Collections.Generic.List[object]'
 try {
     $currentDatabase = Join-Path $testRoot 'current.db'
-    $cases.Add((Invoke-WermInstallerCase -Home $repositoryRoot `
+    $cases.Add((Invoke-WermInstallerCase -InstallRoot $repositoryRoot `
         -DatabasePath $currentDatabase -ExpectedExit 0 -Name 'missing database'))
     if (-not (Test-Path -LiteralPath $currentDatabase -PathType Leaf)) {
         throw 'The missing-database case did not create a SQLite file.'
@@ -184,7 +184,7 @@ try {
 
     $currentHash = (Get-FileHash -LiteralPath $currentDatabase `
         -Algorithm SHA256).Hash.ToLowerInvariant()
-    $cases.Add((Invoke-WermInstallerCase -Home $repositoryRoot `
+    $cases.Add((Invoke-WermInstallerCase -InstallRoot $repositoryRoot `
         -DatabasePath $currentDatabase -ExpectedExit 0 -Name 'current database'))
     $repeatHash = (Get-FileHash -LiteralPath $currentDatabase `
         -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -200,7 +200,7 @@ try {
             '-CommandText', 'CREATE TABLE ForeignTable (Value INTEGER NOT NULL)'))
     $unrecognizedHash = (Get-FileHash -LiteralPath $unrecognizedDatabase `
         -Algorithm SHA256).Hash.ToLowerInvariant()
-    $cases.Add((Invoke-WermInstallerCase -Home $repositoryRoot `
+    $cases.Add((Invoke-WermInstallerCase -InstallRoot $repositoryRoot `
         -DatabasePath $unrecognizedDatabase -ExpectedExit 4 `
         -Name 'unrecognized database'))
     if ((Get-FileHash -LiteralPath $unrecognizedDatabase -Algorithm SHA256).
@@ -217,7 +217,7 @@ try {
             '-CommandText', "INSERT INTO WermSchemaVersion (Version, Migration, AppliedAtUtc) VALUES (2, 'future-test', '2026-08-23T00:00:00Z')"))
     $newerHash = (Get-FileHash -LiteralPath $newerDatabase `
         -Algorithm SHA256).Hash.ToLowerInvariant()
-    $cases.Add((Invoke-WermInstallerCase -Home $repositoryRoot `
+    $cases.Add((Invoke-WermInstallerCase -InstallRoot $repositoryRoot `
         -DatabasePath $newerDatabase -ExpectedExit 4 -Name 'newer database'))
     if ((Get-FileHash -LiteralPath $newerDatabase -Algorithm SHA256).
             Hash.ToLowerInvariant() -ne $newerHash) {
@@ -237,7 +237,7 @@ try {
     Add-Content -LiteralPath $failureMigration -Encoding utf8 `
         -Value "`n-- WERM-BATCH`nCREATE TABLE DeliberateFailure (`n"
     $failedDatabase = Join-Path $testRoot 'failed-migration.db'
-    $cases.Add((Invoke-WermInstallerCase -Home $failureHome `
+    $cases.Add((Invoke-WermInstallerCase -InstallRoot $failureHome `
         -DatabasePath $failedDatabase -ExpectedExit 4 -Name 'failed migration'))
     if (Test-Path -LiteralPath $failedDatabase) {
         throw 'The failed migration left a new database file behind.'
