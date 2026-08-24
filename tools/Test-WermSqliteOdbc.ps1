@@ -119,6 +119,10 @@ function Invoke-WermInstallerCase {
         throw "$Name returned $exitCode instead of $ExpectedExit. " +
             ($output -join [Environment]::NewLine)
     }
+    # The negative cases deliberately return 4. Preserve that value in the
+    # evidence record, but do not let it become this successful test script's
+    # process exit code after the assertion has accepted it.
+    $global:LASTEXITCODE = 0
     if (($output -join [Environment]::NewLine) -notmatch
             "Process architecture: $($Architecture.ToUpperInvariant())") {
         throw "$Name did not run the $Architecture PowerShell worker."
