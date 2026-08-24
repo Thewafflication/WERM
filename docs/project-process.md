@@ -2,7 +2,7 @@
 
 **Content type:** Project process
 
-**Status:** Proposed
+**Status:** Accepted 2026-08-24
 
 ## Purpose
 
@@ -86,6 +86,10 @@ Each milestone receives a controlled closeout record. An optional work log may
 retain a concise chronological execution history when it improves handoff or
 reproducibility.
 
+The process owner prepares a retrospective after each material release,
+security incident, or process failure. Selected improvements identify an
+owner, expected result, approval, and an observable effectiveness check.
+
 ## Change and Defect Control
 
 Changes to accepted requirements, ADRs, database schema, Word-template
@@ -93,9 +97,12 @@ contract, supported platform, or release gates require impact analysis. The
 analysis considers dependent requirements, implementation, tests,
 compatibility, security, schedule, and retained evidence.
 
-The project issue mechanism remains to be selected. Until then, material open
-items remain in the applicable controlled project document and must have an
-owner and completion condition.
+Public issues and defects use the WERM GitHub Issues system. Sensitive
+vulnerabilities use private GitHub Security Advisories as defined in
+`SECURITY.md`. Each material record identifies the observed behavior, affected
+baseline, severity or priority, status, owner, resolution, and verification.
+Release-blocking open items also remain visible in the controlled readiness or
+closeout record until resolved.
 
 ## Configuration and Records
 
@@ -114,6 +121,9 @@ owner, rationale, approval, impact, and review condition.
 ## References
 
 - [WSP adoption record](wsp-adoption.md)
+- [Security policy](../SECURITY.md)
+- [Design for security](design-for-security.md)
+- [Windows release trust plan](windows-release-trust.md)
 - [Milestone 0.1.0 plan](milestones/milestone-0.1.0.md)
 - [Product requirements](requirements/README.md)
 - [WSP software lifecycle](../wsp/processes/software-lifecycle.md)
