@@ -63,11 +63,16 @@ function Get-WermVerifiedArchive {
     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
         Invoke-WebRequest -UseBasicParsing -Uri $Uri -OutFile $Path
     }
-    $actualHash = (Get-FileHash -LiteralPath $Path -Algorithm SHA256).
-        Hash.ToLowerInvariant()
+    # Compute SHA256, try Get-FileHash, fallback .NET
+    if (Get-Command Get-FileHash -ErrorAction SilentlyContinue) {
+        $actualHash = (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant()
+    } else {
+        $bytes = [System.IO.File]::ReadAllBytes($Path)
+        $hashBytes = [System.Security.Cryptography.SHA256]::Create().ComputeHash($bytes)
+        $actualHash = ([System.BitConverter]::ToString($hashBytes) -replace "-", "").ToLowerInvariant()
+    }
     if ($actualHash -ne $Sha256) {
-        throw "Dependency digest mismatch for $Path. Expected $Sha256; " +
-            "received $actualHash."
+        throw "Dependency digest mismatch for $Path. Expected $Sha256; received $actualHash."
     }
 }
 
