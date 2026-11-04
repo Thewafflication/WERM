@@ -260,10 +260,19 @@ $manifest = [ordered]@{
     portabilityAdjustments = @(
         'Preserve DEAD_MAGIC through UINT_PTR on x64',
         'Remove unsupported legacy module-definition directives')
-    driverSha256 = (Get-FileHash -LiteralPath (
-        Join-Path $architectureOutput 'sqlite3odbc.dll') -Algorithm SHA256).Hash.
-        ToLowerInvariant()
 }
+
+# Compute SHA256, try Get-FileHash, fallback .NET
+if (Get-Command Get-FileHash -ErrorAction SilentlyContinue) {
+    $driverSha256 = (Get-FileHash -LiteralPath (
+        Join-Path $architectureOutput 'sqlite3odbc.dll') -Algorithm SHA256).Hash.ToLowerInvariant()
+} else {
+    $bytes = [System.IO.File]::ReadAllBytes((Join-Path $architectureOutput 'sqlite3odbc.dll'))
+    $hashBytes = [System.Security.Cryptography.SHA256]::Create().ComputeHash($bytes)
+    $driverSha256 = ([System.BitConverter]::ToString($hashBytes) -replace '-', '').ToLowerInvariant()
+}
+
+$manifest.driverSha256 = $driverSha256
 $manifest | ConvertTo-Json | Set-Content -LiteralPath (
     Join-Path $architectureOutput 'dependency-manifest.json') -Encoding utf8
 
