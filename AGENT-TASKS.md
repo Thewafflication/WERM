@@ -34,15 +34,15 @@ This record tracks individual agent tasks, their status, prerequisites, and acce
 
 ### Completed Work
 
-- Verified repo root lacks PROJECT-WORK.md and AGENT-TASKS.md (initially)
+- Verified repo root lacks PROJECT-WORK.md and AGENT-TASKS.md
 - Confirmed wsp/templates/ contains 3 candidate template files
 - Restored real $WshPath --version in Test-WermSqliteOdbc.ps1 (per audit requirement)
 - Documented 3 untracked files from prior git status
 
 ### Pending Work
 
-- Verify git status after populating markdowns
-- Make local git commit with the two new markdown files
+- Verify git status after creating new files
+- Make local git commit with the two new files
 - Push validated worker commits to configured upstream
 - Verify remote branch SHA
 
